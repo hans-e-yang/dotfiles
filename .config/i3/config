@@ -9,7 +9,7 @@
 #
 # Please see https://i3wm.org/docs/userguide.html for a complete reference!
 
-set $mod Mod1
+set $mod Mod4
 
 # Font for window titles. Will also be used by the bar unless a different font
 # is used in the bar {} block below.
@@ -211,15 +211,25 @@ bindsym $mod+x mode "exit: [l]ogout, [r]eboot, [s]hutdown, sus[p]end"
 # Add app shortcuts mode
 mode "shortcuts" {
   bindsym f exec firefox; mode "default"
-  bindsym $mod+f exec firefox; mode "default"
   bindsym w exec rofi-wifi-menu; mode "default"
-  bindsym $mod+w exec rofi-wifi-menu; mode "default"
   bindsym t exec thunar; mode "default"
+  bindsym $mod+f exec firefox; mode "default"
+  bindsym $mod+w exec rofi-wifi-menu; mode "default"
   bindsym $mod+t exec thunar; mode "default"
   bindsym Escape mode "default"
   bindsym Return mode "default"
 }
 bindsym $mod+c mode "shortcuts"
+
+mode "keyboard layouts" {
+  bindsym q exec setxkbmap us; mode "default"
+  bindsym c exec setxkbmap us -variant colemak; mode "default"
+  bindsym $mod+q exec setxkbmap us; mode "default"
+  bindsym $mod+c exec setxkbmap us -variant colemak; mode "default"
+  bindsym Escape mode "default"
+  bindsym Return mode "default"
+}
+bindsym $mod+Shift+x mode "keyboard layouts"
 
 # Gruvbox color scheme
 set $bg #282828
