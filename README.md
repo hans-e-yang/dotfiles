@@ -16,10 +16,18 @@ I3 configuration also added, using I3bar and I3Status
 - picom v10
 
 ## How to use
-Add the files to home (~) directory
+1. Follow the following steps in the shell
+```sh
+# Run copy.sh to copy files into home, or do manually
+./copy.sh
+
+# Run setup.sh to download dependencies
+. setup.sh
+```
+
+2. Enter nvim and enter `:Lazy restore` to use restore plugins to lockfile
 
 ## Others
 Made on Linux Mint 22.
 Much of the configuration and plugins are taken from this [The Primeagen youtube video](https://youtu.be/w7i4amO_zaE?si=9UdWkqHR-pVDz2Jv)
-I3: [The Linux Cast](https://youtu.be/77-tuFE_pGc?si=VPIjEaDzWCzyxPND)
-+ reading other's dotfiles
+I3: [The Linux Cast](https://youtu.be/77-tuFE_pGc?si=VPIjEaDzWCzyxPND) + reading other's dotfiles
