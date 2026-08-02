@@ -13,7 +13,7 @@ tar xzvf nvim-linux64.tar.gz
 
 # Add neovim alias
 touch .bash_aliases
-echo "source nvim='~/nvim-linux64/bin/nvim" >> .bash_aliases
+echo "alias nvim='~/nvim-linux64/bin/nvim" >> .bash_aliases
 source .bash_aliases
 
 # Install the config
