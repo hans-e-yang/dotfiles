@@ -1,3 +1,4 @@
+alias nvim='~/.local/share/nvim-linux64/bin/nvim'
 alias rpanel='pkill xfce4-panel; sleep .5; xfce4-panel &'
 alias rtmux='tmux source ~/.tmux.conf'
 alias rbash='source ~/.bashrc'
