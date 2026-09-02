@@ -1,4 +1,16 @@
 alias nvim='~/.local/share/nvim-linux64/bin/nvim'
+<<<<<<< Updated upstream
+=======
+alias rtmux='tmux source ~/.tmux.conf'
+alias rbash='source ~/.bashrc'
+alias ktmux='tmux kill-server'
+alias atmux='tmux attach -t '
+alias gpy='~/.pyvenv/bin/python3'
+alias gpip='~/.pyvenv/bin/pip'
+alias gitgraph='git log --oneline --all --graph'
+alias cnvim='nvim ~/.config/nvim'
+alias ci3='nvim ~/.config/i3'
+>>>>>>> Stashed changes
 alias rpanel='pkill xfce4-panel; sleep .5; xfce4-panel &'
 alias rtmux='tmux source ~/.tmux.conf'
 alias rbash='source ~/.bashrc'
