@@ -1,0 +1,5 @@
+# TPM clones tmux plugins into the repo when ~/.config/tmux is a symlink
+tmux/.config/tmux/plugins/
+
+# per-machine overrides (none currently; kept for apps.local if added later)
+*.local

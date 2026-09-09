@@ -1,6 +1,7 @@
 return {
   {
     "nvim-tree/nvim-tree.lua",
+    tag = "compat-nvim-0.9",
     config = function()
       -- disable netrw at the very start of your init.lua
       -- vim.g.loaded_netrw = 1

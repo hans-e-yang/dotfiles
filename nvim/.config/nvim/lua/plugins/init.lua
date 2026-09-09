@@ -43,7 +43,7 @@ return {
   -- Miscellaneous
   { "nvim-treesitter/playground" },
   { "ThePrimeagen/vim-be-good" },
-  { "nvim-treesitter/nvim-treesitter-context" },
+  { "nvim-treesitter/nvim-treesitter-context", commit = "c331ac7497cd" },
 
   -- Tmux Navigation
   { "christoomey/vim-tmux-navigator",

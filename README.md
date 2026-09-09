@@ -1,33 +1,91 @@
 # Dotfiles
-Personal dotfile configuration for i3, rofi, nvim, tmux, gtk with gruvbox color theme.
-Uses I3bar and I3Status for bar, picom as compositor
-I3 configuration also added, using I3bar and I3Status
 
-## Prerequisites
-- Requires installation of tpm in ~/.config/tmux/plugins/tpm
-- Neovim and Lua installed in the system
-- Requires 'UbuntuNerdFont'. Other nerd fonts can be used, specify in .config/i3/config
-- feh, picom, rofi 
+Personal configs for nvim, tmux, i3, gtk (gruvbox theme) plus bootstrap tooling
+for uv, nvm, starship and flatpak apps (steam, discord). Works on Debian/Ubuntu/Mint
+(apt), Fedora (dnf) and Arch (pacman).
 
-## Versions
-- Neovim v0.9.5
-- tmux 3.4
-- i3 4.23
-- picom v10
+Configs are symlinked into place with [GNU Stow](https://www.gnu.org/software/stow/),
+so editing a live config **is** editing this repo — there is no pull-back script.
+Each package is a canonical stow tree carrying its `$HOME`-relative path
+(e.g. `nvim/.config/nvim/...`), so stowing against `$HOME` makes `~/.config/nvim`
+a single symlink into the repo.
 
-## How to use
-1. Follow the following steps in the shell
+## Scripts
+
+Three scripts, each with one job:
+
+| script       | what it does                                                                 |
+|--------------|------------------------------------------------------------------------------|
+| `setup.sh`   | **Fresh-machine bootstrap** — run once on a new system. Detects the package manager (apt/dnf/pacman), installs core deps (git, stow, tmux, curl, flatpak, C toolchain, unzip, fontconfig), starship, the pinned nvim build, a Nerd Font, then asks about optional apps and symlinks the configs. |
+| `install.sh` | **Symlink manager** — links (or `-D` unlinks) configs from the repo into `$HOME` via Stow. Safe to re-run: existing files that aren't already symlinks are moved to `*.bak-<timestamp>`. This is what you run on machines that already have setup done. |
+| `apps.sh`    | **Optional-app installer** — y/n prompts for toolchains (uv, nvm) and GUI apps (steam, discord). Installs via the native package manager where possible, otherwise flatpak. Can be run standalone any time, not just during setup. |
+
+In short: `setup.sh` once per new machine, `install.sh` on every machine (and after
+`git pull`), `apps.sh` whenever you want another optional app.
+
+## What gets linked
+
+| package  | target                  | notes                                        |
+|----------|-------------------------|----------------------------------------------|
+| `nvim`   | `~/.config/nvim`        | lazy.nvim writes `lazy-lock.json` back here  |
+| `tmux`   | `~/.config/tmux`        | TPM clones plugins into `tmux/plugins/` (gitignored) |
+| `i3`     | `~/.config/i3`          | includes `picom.conf` + `i3status.conf`      |
+| `gtk-3.0`| `~/.config/gtk-3.0`     |                                              |
+| `home`   | `~`                     | `.bash_aliases` (plus any other dotfiles)    |
+
+`i3` and `gtk-3.0` are only linked by default in an X11 desktop session; the rest
+are safe anywhere.
+
+## New machine
+
 ```sh
-# Run copy.sh to copy files into home, or do manually
-./copy.sh
-
-# Run setup.sh to download dependencies
-. setup.sh
+git clone https://github.com/hans-e-yang/dotfiles.git ~/dotfiles
+cd ~/dotfiles
+./setup.sh            # distro detect → deps → starship → nvim → apps → symlink
 ```
 
-2. Enter nvim and enter `:Lazy restore` to use restore plugins to lockfile
+- `./setup.sh --skip nvm` — don't install nvm
+- `./setup.sh --install steam` — add steam without prompting for everything
+- setup prompts y/n per app (Enter accepts the default); every action prints the
+  exact command it runs
+- Finish with `:Lazy restore` inside nvim, and `i3 -C` to validate i3
+
+## Existing machine
+
+```sh
+cd ~/dotfiles && git pull
+./install.sh                    # or: ./install.sh nvim tmux   (subset)
+```
+
+Existing files that aren't already symlinks are moved to `*.bak-<timestamp>`.
+
+## Optional apps (`./apps.sh`)
+
+| app     | default | installer                                        |
+|---------|---------|--------------------------------------------------|
+| `uv`    | yes     | astral installer; offers `uv python install`     |
+| `nvm`   | yes     | pinned tag; offers `nvm install --lts`           |
+| `steam` | no      | native PM (RPM Fusion enabled on Fedora; flatpak fallback) |
+| `discord`| no     | flatpak                                          |
+
+Use `./apps.sh list`, `./apps.sh install <name>`, or `./apps.sh --all`.
+Add more apps by writing an installer function in `apps.sh` and registering it in
+`APP_DEFAULT` / the name arrays.
+
+## Versions / pinned
+
+- Neovim v0.9.5 (downloaded to `~/.local/share/nvim-linux64`, aliased as `nvim`)
+- DejaVu Sans Mono Nerd Font v3.3.0 (installed to `~/.local/share/fonts`)
+- nvm v0.40.7
+- lazy.nvim plugins pinned via `lazy-lock.json`; run `:Lazy restore` after changes
+- tmux 3.4, i3 4.23, picom v10 (as used on the reference machine)
 
 ## Others
-Made on Linux Mint 22.
-Much of the configuration and plugins are taken from this [The Primeagen youtube video](https://youtu.be/w7i4amO_zaE?si=9UdWkqHR-pVDz2Jv)
-I3: [The Linux Cast](https://youtu.be/77-tuFE_pGc?si=VPIjEaDzWCzyxPND) + reading other's dotfiles
+
+Made on Linux Mint 22. Requires a Nerd Font for the status bar / nvim glyphs —
+`setup.sh` installs DejaVu Sans Mono Nerd Font (the default terminal font on Fedora
+Workstation). The i3 config uses `UbuntuNerdFont`; set the terminal/bar font to the
+installed DejaVuSansMono Nerd Font if you use a different one. Also needs `feh`,
+`picom`, `rofi`.
+Much of the nvim config comes from [The Primeagen](https://youtu.be/w7i4amO_zaE)
+and i3 from [The Linux Cast](https://youtu.be/77-tuFE_pGc).
