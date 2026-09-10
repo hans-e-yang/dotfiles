@@ -10,11 +10,17 @@
 # appended to it at install time.
 #
 # Usage:
-#   ./install.sh                 link default set (i3 + gtk-3.0 are added
-#                                automatically when an X11 session is detected)
-#   ./install.sh [pkg ...]       link only the named packages (nvim tmux i3 gtk-3.0 home)
-#   ./install.sh --all           link every package, ignore environment detection
-#   ./install.sh -D [pkg ...]    unlink the given/default packages (stow -D)
+#   ./install.sh                 link core configs (nvim tmux home); on a
+#                                desktop, each desktop config (i3, gtk-3.0,
+#                                ghostty) is offered via a [y/N] prompt —
+#                                nothing desktop-specific is linked silently
+#                                (non-tty stdin: default answer = no)
+#   ./install.sh [pkg ...]       link only the named packages
+#                                (nvim tmux i3 gtk-3.0 ghostty home)
+#   ./install.sh --all           link every package, no prompts
+#   ./install.sh -D [pkg ...]    unlink the given packages (stow -D); with no
+#                                names, unlink core + currently linked desktop
+#                                configs (no prompts)
 #
 # Anything already at a target path that is not one of our symlinks is moved
 # aside to <path>.bak-<timestamp> before linking.
@@ -25,12 +31,23 @@ REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 HOME_PKG="home"
 
 CORE_PKGS=(nvim tmux "$HOME_PKG")
-DESKTOP_PKGS=(i3 gtk-3.0)
+DESKTOP_PKGS=(i3 gtk-3.0 ghostty)
 
-log()  { printf '\033[1;34m[link]\033[0m %s\n' "$*"; }
-die()  { printf '\033[1;31m[link]\033[0m %s\n' "$*" >&2; exit 1; }
+log()  { printf '\033[1;34m[link]\0033[0m %s\n' "$*"; }
+die()  { printf '\033[1;31m[link]\0033[0m %s\n' "$*" >&2; exit 1; }
 
-usage() { sed -n '2,19p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; }
+usage() { sed -n '2,23p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; }
+
+ask() { # $1 prompt text, $2 default (y|n) -> 0 yes / 1 no
+  local prompt="$1" dflt="$2" ans
+  if [ ! -t 0 ]; then return "$([ "$dflt" = y ] && echo 0 || echo 1)"; fi
+  printf '%s [%s] ' "$prompt" "$([ "$dflt" = y ] && echo Y/n || echo y/N)"
+  read -r ans
+  case "${ans:-$dflt}" in
+    y|Y|yes) return 0 ;;
+    *)       return 1 ;;
+  esac
+}
 
 for a in "$@"; do
   case "$a" in
@@ -76,6 +93,18 @@ backup_conflict() { # $1 path, $2 expected canonical source
   mv "$1" "$bak"
 }
 
+pkg_linked() { # $1 pkg -> 0 if every target path is a symlink into the repo
+  paths_for_pkg "$1"
+  local i
+  for i in "${!CONFLICT_PATHS[@]}"; do
+    if [ ! -L "${CONFLICT_PATHS[$i]}" ] \
+       || [ "$(readlink -f "${CONFLICT_PATHS[$i]}")" != "${EXPECTED_SOURCES[$i]}" ]; then
+      return 1
+    fi
+  done
+  return 0
+}
+
 link_pkg() { # $1 pkg
   paths_for_pkg "$1"
   local i
@@ -108,7 +137,7 @@ mode=link
 pkgs=()
 for a in "$@"; do
   case "$a" in
-    --all) pkgs=(nvim tmux i3 gtk-3.0 "$HOME_PKG") ;;
+    --all) pkgs=(nvim tmux i3 gtk-3.0 ghostty "$HOME_PKG") ;;
     -D)    mode=unlink ;;
     -h|--help) usage; exit 0 ;;
     --*)   die "unknown flag: $a (see ./install.sh --help)" ;;
@@ -118,7 +147,13 @@ done
 
 if [ ${#pkgs[@]} -eq 0 ]; then
   pkgs=("${CORE_PKGS[@]}")
-  is_desktop && pkgs+=("${DESKTOP_PKGS[@]}")
+  for pkg in "${DESKTOP_PKGS[@]}"; do
+    if [ "$mode" = unlink ]; then
+      if pkg_linked "$pkg"; then pkgs+=("$pkg"); fi
+    elif is_desktop; then
+      if ask "link $pkg config into $HOME/.config/$pkg?" n; then pkgs+=("$pkg"); fi
+    fi
+  done
 fi
 
 for pkg in "${pkgs[@]}"; do
@@ -128,7 +163,13 @@ for pkg in "${pkgs[@]}"; do
 done
 
 if [ "$mode" = unlink ]; then
-  for pkg in "${pkgs[@]}"; do unlink_pkg "$pkg"; done
+  for pkg in "${pkgs[@]}"; do
+    if pkg_linked "$pkg"; then
+      unlink_pkg "$pkg"
+    else
+      log "$pkg is not linked (or not fully), skipping"
+    fi
+  done
   exit 0
 fi
 

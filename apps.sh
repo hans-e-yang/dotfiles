@@ -10,7 +10,8 @@
 #   ./apps.sh --skip a,b         prompt for everything except a and b
 #   ./apps.sh --dry-run          print commands instead of running them
 #
-# Defaults: uv and nvm default to yes, GUI apps (steam, discord) default to no.
+# Defaults: uv, nvm and ghostty default to yes; consumer GUI apps (steam,
+# discord) default to no.
 # Every action prints the exact command it runs.
 set -euo pipefail
 
@@ -19,11 +20,11 @@ NVM_TAG="v0.40.7"          # pinned nvm release
 UV_URL="https://astral.sh/uv/install.sh"
 
 TOOLCHAIN_NAMES=(uv nvm)
-GUI_NAMES=(steam discord)
+GUI_NAMES=(steam discord ghostty)
 
 # name:default (y/n)
-declare -A APP_DEFAULT=([uv]=y [nvm]=y [steam]=n [discord]=n)
-declare -A APP_LABEL=([uv]="uv (python package/version manager)" [nvm]="nvm (node version manager)" [steam]=Steam [discord]=Discord)
+declare -A APP_DEFAULT=([uv]=y [nvm]=y [steam]=n [discord]=n [ghostty]=y)
+declare -A APP_LABEL=([uv]="uv (python package/version manager)" [nvm]="nvm (node version manager)" [steam]=Steam [discord]=Discord [ghostty]="Ghostty (kitty-graphics terminal, used by jupynvim)")
 
 SKIPS=()
 DRY_RUN=0
@@ -110,6 +111,31 @@ enable_rpmfusion() {
   run_cmd "sudo dnf repolist"
 }
 
+# ------------------------------------------------- ghostty
+# Ghostty (kitty-graphics terminal; hard dependency for jupynvim inline images).
+# Fedora: install via Terra (Fyralabs) — the officially documented source at
+# https://ghostty.org/docs/install/binary. Terra is a third-party rolling repo;
+# --nogpgcheck applies only to the one-time terra-release bootstrap, the
+# installed repo ships Terra's GPG key. Arch: extra/ghostty. apt: no official
+# package, print guidance and skip (non-fatal, like the discord fallback).
+enable_terra() {
+  if dnf repolist 2>/dev/null | grep -q '^terra'; then return 0; fi
+  local ver
+  ver="$(rpm -E %fedora 2>/dev/null || echo "rawhide")"
+  run_cmd "sudo dnf install -y --nogpgcheck --repofrompath 'terra,https://repos.fyralabs.com/terra$ver' terra-release"
+  run_cmd "sudo dnf repolist"
+}
+
+install_ghostty() {
+  case "$PM" in
+    dnf)    enable_terra
+            run_cmd "sudo dnf install -y ghostty" ;;
+    pacman) run_cmd "sudo pacman -S --needed --noconfirm ghostty" ;;
+    *)      echo "  $1: no official apt package — see https://ghostty.org/docs/install/binary (skipping)"
+            return 0 ;;
+  esac
+}
+
 install_discord() {
   flatpak_install "$1" com.discordapp.Discord
 }
@@ -145,6 +171,7 @@ run_app() { # $1 name
     nvm)     install_nvm "$1" ;;
     steam)   install_steam "$1" ;;
     discord) install_discord "$1" ;;
+    ghostty) install_ghostty "$1" ;;
     *) die "no installer for '$1'" ;;
   esac
 }
@@ -156,6 +183,7 @@ is_installed() { # $1 name
     steam)   command -v steam >/dev/null 2>&1 \
                || { command -v flatpak >/dev/null 2>&1 && flatpak info com.valvesoftware.Steam >/dev/null 2>&1; } ;;
     discord) command -v flatpak >/dev/null 2>&1 && flatpak info com.discordapp.Discord >/dev/null 2>&1 ;;
+    ghostty) command -v ghostty >/dev/null 2>&1 ;;
     *)       return 1 ;;
   esac
 }

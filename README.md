@@ -1,7 +1,8 @@
 # Dotfiles
 
-Personal configs for nvim, tmux, i3, gtk (gruvbox theme) plus bootstrap tooling
-for uv, nvm, starship and flatpak apps (steam, discord). Works on Debian/Ubuntu/Mint
+Personal configs for nvim, tmux, i3, gtk (gruvbox theme), the Ghostty terminal
+plus bootstrap tooling for uv, nvm, starship and flatpak apps (steam, discord).
+Works on Debian/Ubuntu/Mint
 (apt), Fedora (dnf) and Arch (pacman).
 
 Configs are symlinked into place with [GNU Stow](https://www.gnu.org/software/stow/),
@@ -18,7 +19,7 @@ Three scripts, each with one job:
 |--------------|------------------------------------------------------------------------------|
 | `setup.sh`   | **Fresh-machine bootstrap** — run once on a new system. Detects the package manager (apt/dnf/pacman), installs core deps (git, stow, tmux, curl, flatpak, C toolchain, unzip, fontconfig), starship, the pinned nvim build, a Nerd Font, then asks about optional apps and symlinks the configs. |
 | `install.sh` | **Symlink manager** — links (or `-D` unlinks) configs from the repo into `$HOME` via Stow. Safe to re-run: existing files that aren't already symlinks are moved to `*.bak-<timestamp>`. This is what you run on machines that already have setup done. |
-| `apps.sh`    | **Optional-app installer** — y/n prompts for toolchains (uv, nvm) and GUI apps (steam, discord). Installs via the native package manager where possible, otherwise flatpak. Can be run standalone any time, not just during setup. |
+| `apps.sh`    | **Optional-app installer** — y/n prompts for toolchains (uv, nvm) and apps (ghostty, steam, discord). Installs via the native package manager where possible (Fedora `ghostty` comes from the Terra repo), otherwise flatpak. Can be run standalone any time, not just during setup. |
 
 In short: `setup.sh` once per new machine, `install.sh` on every machine (and after
 `git pull`), `apps.sh` whenever you want another optional app.
@@ -31,10 +32,12 @@ In short: `setup.sh` once per new machine, `install.sh` on every machine (and af
 | `tmux`   | `~/.config/tmux`        | TPM clones plugins into `tmux/plugins/` (gitignored) |
 | `i3`     | `~/.config/i3`          | includes `picom.conf` + `i3status.conf`      |
 | `gtk-3.0`| `~/.config/gtk-3.0`     |                                              |
+| `ghostty`| `~/.config/ghostty`     | config + vendored `themes/gruvbox-dark`      |
 | `home`   | `~`                     | portable, guarded `.bashrc` + `.bash_aliases` |
 
-`i3` and `gtk-3.0` are only linked by default in an X11 desktop session; the rest
-are safe anywhere.
+`i3`, `gtk-3.0` and `ghostty` are desktop configs: with no args they are only
+linked after you answer `y` at a `[y/N]` prompt — never silently (non-tty default:
+skip). The rest are safe anywhere.
 
 ## New machine
 
@@ -65,6 +68,7 @@ Existing files that aren't already symlinks are moved to `*.bak-<timestamp>`.
 |---------|---------|--------------------------------------------------|
 | `uv`    | yes     | astral installer; offers `uv python install`     |
 | `nvm`   | yes     | pinned tag; offers `nvm install --lts`           |
+| `ghostty`| yes    | Fedora: Terra repo; Arch: `extra`; apt: guidance |
 | `steam` | no      | native PM (RPM Fusion enabled on Fedora; flatpak fallback) |
 | `discord`| no     | flatpak                                          |
 
@@ -72,9 +76,26 @@ Use `./apps.sh list`, `./apps.sh install <name>`, or `./apps.sh --all`.
 Add more apps by writing an installer function in `apps.sh` and registering it in
 `APP_DEFAULT` / the name arrays.
 
+## Jupyter notebooks (jupynvim)
+
+`sheng-tse/jupynvim` opens `.ipynb` files as real notebooks inside nvim. It needs
+nvim >= 0.11, a kitty-graphics terminal (Ghostty, installed above), a registered
+kernel, and ImageMagick 7 for animated GIFs. The kernel is a uv venv:
+
+```sh
+uv venv ~/.venvs/jupyter
+uv pip install --python ~/.venvs/jupyter/bin/python ipykernel matplotlib
+~/.venvs/jupyter/bin/python -m ipykernel install --user --name jupyter
+```
+
+The lazy `build` downloads the prebuilt `jupynvim-core` after verifying it against
+the release `SHA256SUMS`; on Fedora that needs `shasum` (`perl-Digest-SHA`,
+installed by `setup.sh`). Inside tmux, `allow-passthrough` (in `tmux.conf`) keeps
+inline images working.
+
 ## Versions / pinned
 
-- Neovim v0.9.5 (downloaded to `~/.local/share/nvim-linux64`, put on PATH by `~/.bashrc`)
+- Neovim v0.12.5 (downloaded as `nvim-linux-x86_64.tar.gz` to `~/.local/share/nvim-linux-x86_64`, put on PATH by `~/.bashrc`)
 - DejaVu Sans Mono Nerd Font v3.3.0 (installed to `~/.local/share/fonts`)
 - nvm v0.40.7
 - lazy.nvim plugins pinned via `lazy-lock.json`; run `:Lazy restore` after changes

@@ -17,19 +17,28 @@ source of truth, and editing a live config edits the repo directly.
   (forwarding args) and `install.sh`. Skipped if already present.
 - `install.sh` — Stow wrapper. Every package is a canonical stow tree carrying its
   `$HOME`-relative path (`nvim/.config/nvim/...`, `home/.bashrc`, `home/.bash_aliases`),
-  stowed with `-t $HOME`. No args = core packages (`nvim`, `tmux`, `home`) plus
-  `i3`/`gtk-3.0` when an X11 session is detected; pass names explicitly or use
-  `--all` to override. Existing non-symlink targets are moved to
+  stowed with `-t $HOME`. No args = core packages (`nvim`, `tmux`, `home`); on a
+  desktop, each desktop config (`i3`, `gtk-3.0`, `ghostty`) is offered via a `[y/N]`
+  prompt and never linked silently (non-tty default: skip — this replaced the old
+  auto-link on X11 detection). Pass names explicitly or use `--all` to skip prompts.
+  Existing non-symlink targets are moved to
   `*.bak-<timestamp>` first (before stow, since stow refuses to clobber). Hooks:
   clones TPM + installs plugins when tmux links (best-effort, non-fatal).
-  `-D` unlinks. Nothing appends to `~/.bashrc` — the repo owns it (see layout).
+  `-D` unlinks; with no names it unlinks core plus currently linked desktop configs
+  (packages that aren't linked are skipped instead of erroring). Nothing appends to
+  `~/.bashrc` — the repo owns it (see layout).
 - `apps.sh` — optional toolchains/apps with y/n prompts (Enter = manifest default;
-  defaults: uv+nvm yes, steam+discord no). Non-tty stdin falls back to defaults.
+  defaults: uv+nvm+ghostty yes, steam+discord no). Non-tty stdin falls back to
+  defaults.
   `list`, `install <names>`, `--all`, `--skip a,b`, `--dry-run`. Every installer
   echoes its exact command before running. GUI apps install via the native package
   manager when available (steam: apt `steam-installer` / dnf `steam` after enabling
   RPM Fusion nonfree, which is **not** enabled by default / pacman `steam`; discord:
-  flatpak only), falling back to flatpak — which adds flathub
+  flatpak only; ghostty: dnf via the Terra (Fyralabs) third-party repo — the
+  officially documented Ghostty source — bootstrapped with
+  `--nogpgcheck --repofrompath 'terra,https://repos.fyralabs.com/terra$releasever'`,
+  pacman `extra`, apt prints manual guidance and skips), falling back to flatpak —
+  which adds flathub
   as a **user** remote (`flatpak remotes --user`) since Mint's flathub is a system
   remote and `flatpak install --user` can't see it. Register new apps in
   `APP_DEFAULT`, `TOOLCHAIN_NAMES`/`GUI_NAMES`, and an `install_<name>` function.
@@ -40,7 +49,9 @@ source of truth, and editing a live config edits the repo directly.
 Each repo-root dir is one stow package carrying its `$HOME`-relative tree, so stowing
 with `-t $HOME` yields a single symlink per config: `nvim/.config/nvim/...` →
 `~/.config/nvim`; `i3/.config/i3/{config,picom.conf,i3status.conf}` → `~/.config/i3`;
-`gtk-3.0/.config/gtk-3.0/settings.ini`; `tmux/.config/tmux/tmux.conf`;
+`gtk-3.0/.config/gtk-3.0/settings.ini`; `ghostty/.config/ghostty/{config,themes/*}` →
+`~/.config/ghostty` (Terra's ghostty rpm ships no themes, so `themes/gruvbox-dark` is
+vendored in-repo); `tmux/.config/tmux/tmux.conf`;
 `home/.bashrc` → `~/.bashrc` and `home/.bash_aliases` → `~/.bash_aliases`. The
 repo-owned `~/.bashrc` is portable/guarded: it puts the pinned nvim + `~/.local/bin`
 on PATH, sets `EDITOR`/`VISUAL`/`SUDO_EDITOR=nvim`, sources `~/.bash_aliases`, and
@@ -67,3 +78,22 @@ removed on the 0.12 bump — edit only the copy under `nvim/`.
 - TPM init line (`run '~/.config/tmux/plugins/tpm/tpm'`) must stay the last line of
   `tmux/tmux.conf`.
 - setup.sh needs sudo for package installs; apps.sh installs are user-scoped.
+- nvim Jupyter support is `jupynvim` (spec: `nvim/.config/nvim/lua/plugins/jupynvim.lua`).
+  Its lazy `build` hook downloads the prebuilt Rust `jupynvim-core` into
+  `~/.local/share/nvim/lazy/jupynvim/core/target/release/` (outside the stowed tree)
+  after verifying it against the release `SHA256SUMS`. Fedora needs `perl-Digest-SHA`
+  (added to setup.sh dnf core deps) for `shasum`; without it the build aborts before
+  `chmod +x`, leaving a non-executable binary that fails at spawn with ENOENT. The
+  kernel comes from `~/.venvs/jupyter` (uv + ipykernel, registered user kernelspec
+  `jupyter`); inline images need Ghostty/kitty graphics plus tmux `allow-passthrough`
+  (set in `tmux.conf`). Tree-sitter langs live in `plugins/treesitter.lua`.
+
+## Agent skills
+
+### Issue tracker
+
+Issues live in this repo's GitHub Issues (`hans-e-yang/dotfiles`), via the `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Domain docs
+
+Single-context: `CONTEXT.md` + `docs/adr/` at the repo root. See `docs/agents/domain.md`.

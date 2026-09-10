@@ -1,3 +1,4 @@
+alias la='ls -la'
 alias rtmux='tmux source ~/.config/tmux/tmux.conf'
 alias rbash='source ~/.bashrc'
 alias ktmux='tmux kill-server'

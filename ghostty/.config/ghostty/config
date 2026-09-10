@@ -1,0 +1,15 @@
+# Ghostty config — stowed from dotfiles (edit the repo copy, not ~/.config)
+# Docs: https://ghostty.org/docs/config
+
+# Matches the Nerd Font installed by setup.sh (exact fc-list family name).
+font-family = "DejaVuSansM Nerd Font Mono"
+
+window-padding-x = 4
+window-padding-y = 4
+
+# Middle-click/selection goes straight to the clipboard.
+copy-on-select = clipboard
+
+# Gruvbox theme, vendored in this package at themes/gruvbox-dark (Ghostty's
+# Fedora/Terra package ships no built-in themes).
+theme = gruvbox-dark
