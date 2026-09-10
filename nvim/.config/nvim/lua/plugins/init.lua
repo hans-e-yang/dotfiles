@@ -41,9 +41,8 @@ return {
     opts = { options = { theme = 'gruvbox-material' } }
   },
   -- Miscellaneous
-  { "nvim-treesitter/playground" },
   { "ThePrimeagen/vim-be-good" },
-  { "nvim-treesitter/nvim-treesitter-context", commit = "c331ac7497cd" },
+  { "nvim-treesitter/nvim-treesitter-context" },
 
   -- Tmux Navigation
   { "christoomey/vim-tmux-navigator",
@@ -77,15 +76,13 @@ return {
     end
   },
 
-  -- add this to your lua/plugins.lua, lua/plugins/init.lua,  or the file you keep your other plugins:
   {
-    'numToStr/Comment.nvim',
-    lazy = false,
-    config = function()
-      require('Comment').setup()
-      local api = require('Comment.api')
-      vim.keymap.set('i', '<C-_>', api.toggle.linewise.current)
-    end
+    "folke/ts-comments.nvim",
+    event = "VeryLazy",
+    opts = {},
+    init = function()
+      vim.keymap.set("i", "<C-_>", "<Cmd>normal! gcc<CR>", { silent = true })
+    end,
   }
 
 }

@@ -1,6 +1,5 @@
 return {
   "NeogitOrg/neogit",
-  tag = "v0.0.1",
   dependencies = {
     "nvim-lua/plenary.nvim",
     "nvim-tree/nvim-web-devicons",

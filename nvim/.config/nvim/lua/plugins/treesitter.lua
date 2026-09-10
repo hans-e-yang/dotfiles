@@ -1,25 +1,17 @@
 return {
   {
     "nvim-treesitter/nvim-treesitter",
-    version = "v0.9.2",
-    shallow = false,
+    branch = "main",
+    lazy = false,
     build = ":TSUpdate",
-    config = function ()
-      local configs = require("nvim-treesitter.configs")
-
-      configs.setup({
-        endwise = { enable = true },
-        ensure_installed = { "c", "lua", "vim", "vimdoc", "query", "javascript", "html", "typescript" },
-        sync_install = false,
-        highlight = { enable = true },
-        indent = { enable = false },
+    config = function()
+      local langs = { "c", "lua", "vim", "vimdoc", "query", "javascript", "html", "typescript" }
+      require("nvim-treesitter").install(langs)
+      vim.api.nvim_create_autocmd("FileType", {
+        pattern = langs,
+        callback = function() pcall(vim.treesitter.start) end,
       })
-    end
+    end,
   },
-  {
-    "tree-sitter/tree-sitter-embedded-template"
-  }, 
-  {
-    "tpope/vim-endwise"
-  }
+  { "tpope/vim-endwise" },
 }

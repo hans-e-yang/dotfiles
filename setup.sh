@@ -12,7 +12,8 @@ set -euo pipefail
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 [ -d "$REPO_DIR/.git" ] || { echo "error: clone the repo first, then run setup.sh from inside it."; exit 1; }
 
-NVIM_VERSION="0.9.5"
+NVIM_VERSION="0.12.5"
+NVIM_DIR="$HOME/.local/share/nvim-linux-x86_64"
 
 run_cmd() {
   echo "    -> $1"
@@ -81,17 +82,44 @@ install_nerd_font() {
 }
 
 # ------------------------------------------------------------ nvim (pinned)
+# Release assets are named nvim-linux-x86_64.* since v0.10 (was nvim-linux64.*).
 install_nvim() {
-  local bin="$HOME/.local/share/nvim-linux64/bin/nvim"
-  [ -x "$bin" ] && { echo "  nvim v$NVIM_VERSION: already installed (skipping)"; return 0; }
+  local bin="$NVIM_DIR/bin/nvim"
+  if [ -x "$bin" ] && "$bin" --version 2>/dev/null | head -n1 | grep -q "v$NVIM_VERSION"; then
+    echo "  nvim v$NVIM_VERSION: already installed (skipping)"
+    return 0
+  fi
   local tmp; tmp="$(mktemp -d)"
   cd "$tmp"
   echo "  nvim: downloading v$NVIM_VERSION"
-  run_cmd "curl -fsSL -o nvim-linux64.tar.gz https://github.com/neovim/neovim/releases/download/v$NVIM_VERSION/nvim-linux64.tar.gz"
-  tar xzf nvim-linux64.tar.gz
+  run_cmd "curl -fsSL -o nvim-linux-x86_64.tar.gz https://github.com/neovim/neovim/releases/download/v$NVIM_VERSION/nvim-linux-x86_64.tar.gz"
+  tar xzf nvim-linux-x86_64.tar.gz
   mkdir -p "$HOME/.local/share"
-  mv nvim-linux64 "$HOME/.local/share/"
+  rm -rf "$NVIM_DIR"
+  mv nvim-linux-x86_64 "$HOME/.local/share/"
   cd /
+  rm -rf "$tmp"
+  if [ -d "$HOME/.local/share/nvim-linux64" ]; then
+    echo "  removing stale pre-0.10 build ~/.local/share/nvim-linux64"
+    rm -rf "$HOME/.local/share/nvim-linux64"
+  fi
+}
+
+# ------------------------------------------------------------ tree-sitter CLI
+# Required by nvim-treesitter (main branch) to generate parsers; installed
+# user-scoped from the latest GitHub release into ~/.local/bin (on PATH via .bashrc).
+install_ts_cli() {
+  if command -v tree-sitter >/dev/null 2>&1; then
+    echo "  tree-sitter-cli: already installed (skipping)"
+    return 0
+  fi
+  local tmp; tmp="$(mktemp -d)"
+  echo "  tree-sitter-cli: downloading latest"
+  run_cmd "curl -fsSL -o \"$tmp/tree-sitter.gz\" https://github.com/tree-sitter/tree-sitter/releases/latest/download/tree-sitter-linux-x64.gz"
+  gunzip "$tmp/tree-sitter.gz"
+  chmod +x "$tmp/tree-sitter"
+  mkdir -p "$HOME/.local/bin"
+  mv "$tmp/tree-sitter" "$HOME/.local/bin/tree-sitter"
   rm -rf "$tmp"
 }
 
@@ -108,6 +136,9 @@ install_starship
 
 echo "==> installing nvim v$NVIM_VERSION"
 install_nvim
+
+echo "==> installing tree-sitter CLI"
+install_ts_cli
 
 echo "==> installing nerd font (DejaVu Sans Mono)"
 install_nerd_font

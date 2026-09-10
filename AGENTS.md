@@ -9,9 +9,11 @@ source of truth, and editing a live config edits the repo directly.
 
 - `setup.sh` — fresh-machine bootstrap, run from inside a clone. Distro-detects
   (`/etc/os-release` → apt/dnf/pacman), installs core deps (git, stow, tmux, curl,
-  flatpak, C toolchain), starship (+ gruvbox-rainbow preset), pinned nvim v0.9.5
-  tarball into `~/.local/share/nvim-linux64` (put on PATH by the repo-owned
-  `~/.bashrc`), installs a Nerd Font (`~/.local/share/fonts`), then calls `apps.sh`
+  flatpak, C toolchain), starship (+ gruvbox-rainbow preset), pinned nvim v0.12.5
+  tarball into `~/.local/share/nvim-linux-x86_64` (asset/dir renamed from
+  `nvim-linux64` at v0.10; put on PATH by the repo-owned `~/.bashrc`) plus the
+  tree-sitter CLI (`~/.local/bin`, required by nvim-treesitter `main`),
+  installs a Nerd Font (`~/.local/share/fonts`), then calls `apps.sh`
   (forwarding args) and `install.sh`. Skipped if already present.
 - `install.sh` — Stow wrapper. Every package is a canonical stow tree carrying its
   `$HOME`-relative path (`nvim/.config/nvim/...`, `home/.bashrc`, `home/.bash_aliases`),
@@ -45,8 +47,8 @@ on PATH, sets `EDITOR`/`VISUAL`/`SUDO_EDITOR=nvim`, sources `~/.bash_aliases`, a
 lazy-loads starship/nvm/completion — so nothing is appended to it at install time
 and it works on Fedora/Arch too (Debian-only auto-source caveat no longer applies).
 `home/.bash_aliases` was deduped when moved (old copy.sh appended → dupes). The
-stale root-level `after/` dir is an unused duplicate of `nvim/.config/nvim/after/`
-— edit the copy under `nvim/`.
+stale root-level `after/` dir (unused duplicate of `nvim/.config/nvim/after/`) was
+removed on the 0.12 bump — edit only the copy under `nvim/`.
 
 ## Gotchas
 
@@ -56,9 +58,9 @@ stale root-level `after/` dir is an unused duplicate of `nvim/.config/nvim/after
   tool activation is guarded inside it (starship/nvm/PATH only fire if present).
   Put per-machine/per-distro overrides in `~/.bashrc.d/*` (sourced last), not by
   editing the stowed file with install-time appends.
-- Version pins are deliberate: nvim v0.9.5 (setup.sh + PATH), nvm tag in apps.sh
+- Version pins are deliberate: nvim v0.12.5 (setup.sh + PATH), nvm tag in apps.sh
   (`NVM_TAG`), lazy.nvim `lazy-lock.json`. After plugin changes run `:Lazy restore`.
-- Plugin specs ending `.luab` (e.g. `lsp.luab`) are intentionally disabled —
+- Plugin specs ending `.luab` (e.g. `nvim-ufo.luab`) are intentionally disabled —
   lazy.nvim only loads `.lua`. Rename to toggle.
 - `i3/config` references `$HOME/.config/i3/picom.conf` and `i3status.conf`; keep
   both inside `i3/`.

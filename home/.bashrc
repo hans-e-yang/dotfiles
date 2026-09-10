@@ -19,16 +19,18 @@ _path_prepend() {
 
 # Put the pinned nvim build on PATH (installed by setup.sh) so `nvim` is a real
 # command everywhere, not just an interactive alias.
-[ -d "$HOME/.local/share/nvim-linux64/bin" ] && _path_prepend "$HOME/.local/share/nvim-linux64/bin"
+[ -d "$HOME/.local/share/nvim-linux-x86_64/bin" ] && _path_prepend "$HOME/.local/share/nvim-linux-x86_64/bin"
 _path_prepend "$HOME/.local/bin"
 _path_prepend "$HOME/bin"
 export PATH
 
 # Editor — nvim is now on PATH; only set it when actually available so tools
-# fall back to their default (vi) on a machine without it.
-if command -v nvim >/dev/null 2>&1; then
-  export EDITOR=nvim VISUAL=nvim SUDO_EDITOR=nvim
+# fall back to their default (vi) on a machine without it. Use the resolved
+# full path so the editor works even if PATH changes later.
+if _nvim="$(command -v nvim 2>/dev/null)"; then
+  export EDITOR="$_nvim" VISUAL="$_nvim" SUDO_EDITOR="$_nvim"
 fi
+unset _nvim
 
 # nvm — loaded lazily only if apps.sh installed it.
 export NVM_DIR="$HOME/.nvm"
