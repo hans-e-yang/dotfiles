@@ -61,21 +61,6 @@ run_cmd() { # $1 exact command string
   bash -c "$1"
 }
 
-ensure_bashrc_block() { # $1 marker, stdin = block text
-  local marker="$1" bashrc="$HOME_DIR/.bashrc"
-  [ -f "$bashrc" ] || touch "$bashrc"
-  if grep -qs "dotfiles: $marker" "$bashrc"; then return 0; fi
-  if [ "$DRY_RUN" = 1 ]; then
-    echo "    (dry-run) would append '$marker' block to $bashrc"
-    return 0
-  fi
-  {
-    printf '\n# >>> dotfiles: %s >>>\n' "$marker"
-    cat
-    printf '# <<< dotfiles: %s <<<\n' "$marker"
-  } >>"$bashrc"
-}
-
 # ---------------------------------------------------------------- uv
 install_uv() {
   local bin="$HOME_DIR/.local/bin/uv"
@@ -84,9 +69,6 @@ install_uv() {
     return 0
   fi
   run_cmd "curl -LsSf $UV_URL | sh"
-  ensure_bashrc_block "local-bin" <<'EOF'
-[ -d "$HOME/.local/bin" ] && export PATH="$HOME/.local/bin:$PATH"
-EOF
   if ask "  install latest Python via uv?" y; then
     run_cmd "$bin python install"
   fi
@@ -99,10 +81,6 @@ install_nvm() {
     return 0
   fi
   run_cmd "git clone --depth=1 --branch $NVM_TAG https://github.com/nvm-sh/nvm.git \"$HOME_DIR/.nvm\""
-  ensure_bashrc_block "nvm" <<'EOF'
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-EOF
   if ask "  install Node LTS and set it as the default?" y; then
     run_cmd ". \"$HOME_DIR/.nvm/nvm.sh\" && nvm install --lts && nvm alias default 'lts/*'"
   fi

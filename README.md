@@ -31,7 +31,7 @@ In short: `setup.sh` once per new machine, `install.sh` on every machine (and af
 | `tmux`   | `~/.config/tmux`        | TPM clones plugins into `tmux/plugins/` (gitignored) |
 | `i3`     | `~/.config/i3`          | includes `picom.conf` + `i3status.conf`      |
 | `gtk-3.0`| `~/.config/gtk-3.0`     |                                              |
-| `home`   | `~`                     | `.bash_aliases` (plus any other dotfiles)    |
+| `home`   | `~`                     | portable, guarded `.bashrc` + `.bash_aliases` |
 
 `i3` and `gtk-3.0` are only linked by default in an X11 desktop session; the rest
 are safe anywhere.
@@ -74,7 +74,7 @@ Add more apps by writing an installer function in `apps.sh` and registering it i
 
 ## Versions / pinned
 
-- Neovim v0.9.5 (downloaded to `~/.local/share/nvim-linux64`, aliased as `nvim`)
+- Neovim v0.9.5 (downloaded to `~/.local/share/nvim-linux64`, put on PATH by `~/.bashrc`)
 - DejaVu Sans Mono Nerd Font v3.3.0 (installed to `~/.local/share/fonts`)
 - nvm v0.40.7
 - lazy.nvim plugins pinned via `lazy-lock.json`; run `:Lazy restore` after changes

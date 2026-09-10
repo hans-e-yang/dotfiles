@@ -5,7 +5,9 @@
 # Packages are standard stow trees: each config package carries its
 # $HOME-relative path (e.g. nvim/.config/nvim/...), so stowing it against
 # $HOME makes ~/.config/nvim a symlink into this repo. The home package
-# stows top-level dotfiles (e.g. home/.bash_aliases -> ~/.bash_aliases).
+# stows top-level dotfiles (home/.bashrc -> ~/.bashrc, home/.bash_aliases ->
+# ~/.bash_aliases). ~/.bashrc sources ~/.bash_aliases itself, so nothing is
+# appended to it at install time.
 #
 # Usage:
 #   ./install.sh                 link default set (i3 + gtk-3.0 are added
@@ -90,16 +92,6 @@ unlink_pkg() { # $1 pkg
   stow -d "$REPO_DIR" -t "$HOME" -D "$1"
 }
 
-ensure_bash_aliases_sourced() {
-  local bashrc="$HOME/.bashrc"
-  local marker="dotfiles: bash_aliases"
-  [ -f "$bashrc" ] || touch "$bashrc"
-  if grep -qs "$marker" "$bashrc"; then return 0; fi
-  log "adding bash_aliases source block to $bashrc"
-  printf '\n# >>> %s >>>\n[ -f "$HOME/.bash_aliases" ] && . "$HOME/.bash_aliases"\n# <<< %s <<<\n' \
-    "$marker" "$marker" >>"$bashrc"
-}
-
 ensure_tpm() {
   local tpm="$HOME/.config/tmux/plugins/tpm"
   if [ ! -s "$tpm/tpm" ]; then
@@ -145,7 +137,6 @@ for pkg in "${pkgs[@]}"; do link_pkg "$pkg"; done
 for pkg in "${pkgs[@]}"; do
   case "$pkg" in
     tmux) ensure_tpm ;;
-    "$HOME_PKG") ensure_bash_aliases_sourced ;;
   esac
 done
 

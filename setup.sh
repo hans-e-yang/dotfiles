@@ -59,9 +59,6 @@ install_starship() {
     mkdir -p "$HOME/.config"
     run_cmd "starship preset gruvbox-rainbow -o \"$HOME/.config/starship.toml\""
   fi
-  if ! grep -qs 'dotfiles: starship' "$HOME/.bashrc"; then
-    printf '\n# >>> dotfiles: starship >>>\neval "$(starship init bash)"\n# <<< dotfiles: starship <<<\n' >>"$HOME/.bashrc"
-  fi
 }
 
 # ------------------------------------------------------------ nerd font
