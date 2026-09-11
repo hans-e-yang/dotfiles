@@ -13,3 +13,54 @@ copy-on-select = clipboard
 # Gruvbox theme, vendored in this package at themes/gruvbox-dark (Ghostty's
 # Fedora/Terra package ships no built-in themes).
 theme = gruvbox-dark
+
+# ---------------------------------------------------------------------------
+# Pane/split shortcuts — i3-style directions on Ctrl+Shift (Mod4/Super is
+# owned by the GNOME tiling extension, so we don't use it here). Mirrors i3's
+# h/j/k/l focus, split orientation, and resize-mode directions.
+#
+# Clashes with Ghostty defaults are resolved below:
+#   ctrl+shift+q (quit) -> now closes the focused pane; quit moved to +alt
+#   ctrl+shift+v (paste) -> NOT used for splitting (kept as paste)
+#   ctrl+shift+e (new_split:down) -> reused, same action
+# ---------------------------------------------------------------------------
+
+# Focus (i3: $mod+h/j/k/l focus left/down/up/right)
+keybind = ctrl+shift+h=goto_split:left
+keybind = ctrl+shift+j=goto_split:down
+keybind = ctrl+shift+k=goto_split:up
+keybind = ctrl+shift+l=goto_split:right
+
+# Cycle to the next split (overrides the default previous_tab on this combo)
+keybind = ctrl+shift+tab=goto_split:next
+
+# New split (i3: $mod+b split h -> side by side, $mod+v split v -> stacked).
+# b = side-by-side; e = stacked (i3's v would clobber ctrl+shift+v paste).
+keybind = ctrl+shift+b=new_split:right
+keybind = ctrl+shift+e=new_split:down
+
+# Close focused pane (i3: $mod+q kill). Closes the split, or the whole
+# window/tab if it's the last surface. Overrides the default quit binding.
+keybind = ctrl+shift+q=close_surface
+keybind = ctrl+shift+alt+q=quit
+
+# Resize (i3 resize mode: h shrink width, l grow width, j grow height,
+# k shrink height)
+keybind = ctrl+shift+alt+h=resize_split:left,10
+keybind = ctrl+shift+alt+l=resize_split:right,10
+keybind = ctrl+shift+alt+j=resize_split:down,10
+keybind = ctrl+shift+alt+k=resize_split:up,10
+
+# Balance all splits (convenience; no direct i3 equivalent)
+keybind = ctrl+shift+alt+e=equalize_splits
+
+# Jump directly to a tab by number (Ctrl+Alt+1..9); Ctrl+Tab = next tab.
+keybind = ctrl+alt+1=goto_tab:1
+keybind = ctrl+alt+2=goto_tab:2
+keybind = ctrl+alt+3=goto_tab:3
+keybind = ctrl+alt+4=goto_tab:4
+keybind = ctrl+alt+5=goto_tab:5
+keybind = ctrl+alt+6=goto_tab:6
+keybind = ctrl+alt+7=goto_tab:7
+keybind = ctrl+alt+8=goto_tab:8
+keybind = ctrl+alt+9=goto_tab:9

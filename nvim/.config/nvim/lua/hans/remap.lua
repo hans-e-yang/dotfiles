@@ -36,6 +36,7 @@ map.set("v", "K", ":m '<-2<cr>gv=gv")
 
 -- Control Backspace like in VSCode
 map.set("i", "<C-H>", "<C-W>")
+map.set("i", "<C-BS>", "<C-W>")
 
 -- Change behavior of enter and backspace in normal mode
 -- map.set("n", "<cr>", "<C-M>")

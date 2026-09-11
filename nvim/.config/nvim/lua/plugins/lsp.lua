@@ -51,6 +51,9 @@ return {
           -- toggle completion
           ["<Esc>"] = cmp.mapping.abort(),
 
+          -- manually trigger completion
+          ["<C-Space>"] = cmp.mapping.complete(),
+
           -- navigate between snippet placeholder
           ["<C-a>"] = cmp.mapping(function(fallback)
             if luasnip.jumpable(-1) then luasnip.jump(-1) else fallback() end
