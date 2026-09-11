@@ -3,11 +3,12 @@ set -euo pipefail
 
 choice="$(zenity --list --title="Shortcuts" --text="Choose an app" \
   --column=Action --hide-header --height=280 --width=260 \
-  "Firefox" "Wi-Fi" "Files" 2>/dev/null)" || exit 0
+  "Terminal" "Firefox" "Wi-Fi" "Files" 2>/dev/null)" || exit 0
 [ -n "$choice" ] || exit 0
 
 case "$choice" in
   "Firefox") setsid firefox >/dev/null 2>&1 & ;;
   "Wi-Fi")   setsid nm-connection-editor >/dev/null 2>&1 & ;;
   "Files")   setsid nautilus >/dev/null 2>&1 & ;;
+  "Terminal")   setsid ghostty >/dev/null 2>&1 & ;;
 esac
