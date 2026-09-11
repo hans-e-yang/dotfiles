@@ -46,6 +46,12 @@ The `gnome` package mimics i3's `$mod+x` (logout/reboot/shutdown/suspend) and
 registers them idempotently and is called by the `install.sh` hook). It assumes
 `zenity`, `nm-connection-editor` and `nautilus` are installed.
 
+Linking `gnome` also offers to install [Pop Shell](https://github.com/pop-os/shell),
+GNOME's tiling extension (Fedora: `dnf` package; apt/pacman: builds from source
+per [System76's guide](https://support.system76.com/articles/pop-shell)). It is
+GNOME-only, so the prompt warns and defaults to no — decline on i3 or any other
+session.
+
 ## New machine
 
 ```sh

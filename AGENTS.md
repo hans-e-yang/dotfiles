@@ -23,8 +23,13 @@ source of truth, and editing a live config edits the repo directly.
   auto-link on X11 detection). Pass names explicitly or use `--all` to skip prompts.
   Existing non-symlink targets are moved to
   `*.bak-<timestamp>` first (before stow, since stow refuses to clobber). Hooks:
-  clones TPM + installs plugins when tmux links; registers our custom media-key
-  bindings (`Super+x`/`Super+c`) when gnome links (both best-effort, non-fatal).
+  clones TPM + installs plugins when tmux links; when gnome links, registers our
+  custom media-key bindings (`Super+x`/`Super+c`) and *offers* to install Pop
+  Shell (all best-effort, non-fatal). Pop Shell is GNOME-only, so it is prompted
+  with a warning and defaults to no (non-tty: skip; `--all` skips it entirely).
+  Fedora uses the `dnf` package; apt/pacman build `pop-os/shell` from source into
+  `~/.local/share/pop-shell-src` (branch picked from `gnome-shell --version`)
+  and skip upstream's `restart-shell` target so install.sh never logs out.
   `-D` unlinks; with no names it unlinks core plus currently linked desktop configs
   (packages that aren't linked are skipped instead of erroring). Nothing appends to
   `~/.bashrc` — the repo owns it (see layout).
@@ -56,7 +61,10 @@ vendored in-repo); `tmux/.config/tmux/tmux.conf`;
 `gnome/.config/gnome/{power-menu,shortcuts-menu,setup-keybindings}` → `~/.config/gnome`
 (GNOME lacks i3's modal keybindings, so `Super+x`/`Super+c` pop zenity choosers that
 mirror i3's exit/shortcuts modes; `setup-keybindings` idempotently registers them as
-media-key custom bindings and is invoked by the install.sh hook);
+media-key custom bindings, forces 10 static workspaces and binds
+`Super+1..0`/`Super+Shift+1..0` to switch/move (unbinding the dash's `Super+<n>`
+app-launchers so i3 muscle memory carries over), and is invoked by the install.sh
+hook);
 `home/.bashrc` → `~/.bashrc` and `home/.bash_aliases` → `~/.bash_aliases`. The
 repo-owned `~/.bashrc` is portable/guarded: it puts the pinned nvim + `~/.local/bin`
 on PATH, sets `EDITOR`/`VISUAL`/`SUDO_EDITOR=nvim`, sources `~/.bash_aliases`, and

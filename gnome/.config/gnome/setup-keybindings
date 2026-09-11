@@ -46,4 +46,22 @@ list=""
 for path in "${keep[@]}"; do list+="'$path', "; done
 gsettings set "$SCHEMA" custom-keybindings "[${list%, }]"
 
-echo "registered: ${LABEL[power]} = ${BIND[power]}, ${LABEL[shortcuts]} = ${BIND[shortcuts]}"
+# Workspace navigation: mirror i3's Super+<n> / Super+<Shift>+<n> (i3/config:142-163).
+gsettings set org.gnome.mutter dynamic-workspaces false
+gsettings set org.gnome.desktop.wm.preferences num-workspaces 10
+
+digit_for() { [ "$1" -eq 10 ] && printf 0 || printf '%s' "$1"; }
+
+for i in $(seq 1 10); do
+  d="$(digit_for "$i")"
+  gsettings set org.gnome.desktop.wm.keybindings "switch-to-workspace-$i" "['<Super>$d']"
+  gsettings set org.gnome.desktop.wm.keybindings "move-to-workspace-$i" "['<Super><Shift>$d']"
+done
+
+# Free Super+<n> from the dash's app launchers so the workspace bindings win.
+for i in $(seq 1 9); do
+  gsettings set org.gnome.shell.keybindings "switch-to-application-$i" "[]"
+  gsettings set org.gnome.shell.extensions.dash-to-dock "app-hotkey-$i" "[]" 2>/dev/null || true
+done
+
+echo "registered: ${LABEL[power]} = ${BIND[power]}, ${LABEL[shortcuts]} = ${BIND[shortcuts]}, workspaces = Super+1..0 / Super+Shift+1..0"
