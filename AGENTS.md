@@ -18,12 +18,13 @@ source of truth, and editing a live config edits the repo directly.
 - `install.sh` — Stow wrapper. Every package is a canonical stow tree carrying its
   `$HOME`-relative path (`nvim/.config/nvim/...`, `home/.bashrc`, `home/.bash_aliases`),
   stowed with `-t $HOME`. No args = core packages (`nvim`, `tmux`, `home`); on a
-  desktop, each desktop config (`i3`, `gtk-3.0`, `ghostty`) is offered via a `[y/N]`
+  desktop, each desktop config (`i3`, `gtk-3.0`, `ghostty`, `gnome`) is offered via a `[y/N]`
   prompt and never linked silently (non-tty default: skip — this replaced the old
   auto-link on X11 detection). Pass names explicitly or use `--all` to skip prompts.
   Existing non-symlink targets are moved to
   `*.bak-<timestamp>` first (before stow, since stow refuses to clobber). Hooks:
-  clones TPM + installs plugins when tmux links (best-effort, non-fatal).
+  clones TPM + installs plugins when tmux links; registers our custom media-key
+  bindings (`Super+x`/`Super+c`) when gnome links (both best-effort, non-fatal).
   `-D` unlinks; with no names it unlinks core plus currently linked desktop configs
   (packages that aren't linked are skipped instead of erroring). Nothing appends to
   `~/.bashrc` — the repo owns it (see layout).
@@ -52,6 +53,10 @@ with `-t $HOME` yields a single symlink per config: `nvim/.config/nvim/...` →
 `gtk-3.0/.config/gtk-3.0/settings.ini`; `ghostty/.config/ghostty/{config,themes/*}` →
 `~/.config/ghostty` (Terra's ghostty rpm ships no themes, so `themes/gruvbox-dark` is
 vendored in-repo); `tmux/.config/tmux/tmux.conf`;
+`gnome/.config/gnome/{power-menu,shortcuts-menu,setup-keybindings}` → `~/.config/gnome`
+(GNOME lacks i3's modal keybindings, so `Super+x`/`Super+c` pop zenity choosers that
+mirror i3's exit/shortcuts modes; `setup-keybindings` idempotently registers them as
+media-key custom bindings and is invoked by the install.sh hook);
 `home/.bashrc` → `~/.bashrc` and `home/.bash_aliases` → `~/.bash_aliases`. The
 repo-owned `~/.bashrc` is portable/guarded: it puts the pinned nvim + `~/.local/bin`
 on PATH, sets `EDITOR`/`VISUAL`/`SUDO_EDITOR=nvim`, sources `~/.bash_aliases`, and

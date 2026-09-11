@@ -33,11 +33,18 @@ In short: `setup.sh` once per new machine, `install.sh` on every machine (and af
 | `i3`     | `~/.config/i3`          | includes `picom.conf` + `i3status.conf`      |
 | `gtk-3.0`| `~/.config/gtk-3.0`     |                                              |
 | `ghostty`| `~/.config/ghostty`     | config + vendored `themes/gruvbox-dark`      |
+| `gnome`  | `~/.config/gnome`       | `Super+x` power / `Super+c` shortcuts choosers |
 | `home`   | `~`                     | portable, guarded `.bashrc` + `.bash_aliases` |
 
-`i3`, `gtk-3.0` and `ghostty` are desktop configs: with no args they are only
-linked after you answer `y` at a `[y/N]` prompt — never silently (non-tty default:
-skip). The rest are safe anywhere.
+`i3`, `gtk-3.0`, `ghostty` and `gnome` are desktop configs: with no args they are
+only linked after you answer `y` at a `[y/N]` prompt — never silently (non-tty
+default: skip). The rest are safe anywhere.
+
+The `gnome` package mimics i3's `$mod+x` (logout/reboot/shutdown/suspend) and
+`$mod+c` (Firefox/Wi-Fi/Files) modal menus with zenity choosers, bound to
+`Super+x` / `Super+c` via GNOME's media-key custom bindings (`setup-keybindings`
+registers them idempotently and is called by the `install.sh` hook). It assumes
+`zenity`, `nm-connection-editor` and `nautilus` are installed.
 
 ## New machine
 

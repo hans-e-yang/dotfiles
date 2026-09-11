@@ -12,11 +12,11 @@
 # Usage:
 #   ./install.sh                 link core configs (nvim tmux home); on a
 #                                desktop, each desktop config (i3, gtk-3.0,
-#                                ghostty) is offered via a [y/N] prompt —
+#                                ghostty, gnome) is offered via a [y/N] prompt —
 #                                nothing desktop-specific is linked silently
 #                                (non-tty stdin: default answer = no)
 #   ./install.sh [pkg ...]       link only the named packages
-#                                (nvim tmux i3 gtk-3.0 ghostty home)
+#                                (nvim tmux i3 gtk-3.0 ghostty gnome home)
 #   ./install.sh --all           link every package, no prompts
 #   ./install.sh -D [pkg ...]    unlink the given packages (stow -D); with no
 #                                names, unlink core + currently linked desktop
@@ -31,7 +31,7 @@ REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 HOME_PKG="home"
 
 CORE_PKGS=(nvim tmux "$HOME_PKG")
-DESKTOP_PKGS=(i3 gtk-3.0 ghostty)
+DESKTOP_PKGS=(i3 gtk-3.0 ghostty gnome)
 
 log()  { printf '\033[1;34m[link]\0033[0m %s\n' "$*"; }
 die()  { printf '\033[1;31m[link]\0033[0m %s\n' "$*" >&2; exit 1; }
@@ -133,11 +133,20 @@ ensure_tpm() {
   fi
 }
 
+apply_gnome_keybindings() {
+  local script="$HOME/.config/gnome/setup-keybindings"
+  [ -x "$script" ] || return 0
+  log "registering GNOME keybindings (Super+x power menu, Super+c shortcuts menu)"
+  if ! "$script"; then
+    echo "  [link] warning: keybinding setup failed (retry inside GNOME: $script)"
+  fi
+}
+
 mode=link
 pkgs=()
 for a in "$@"; do
   case "$a" in
-    --all) pkgs=(nvim tmux i3 gtk-3.0 ghostty "$HOME_PKG") ;;
+    --all) pkgs=(nvim tmux i3 gtk-3.0 ghostty gnome "$HOME_PKG") ;;
     -D)    mode=unlink ;;
     -h|--help) usage; exit 0 ;;
     --*)   die "unknown flag: $a (see ./install.sh --help)" ;;
@@ -177,7 +186,8 @@ for pkg in "${pkgs[@]}"; do link_pkg "$pkg"; done
 
 for pkg in "${pkgs[@]}"; do
   case "$pkg" in
-    tmux) ensure_tpm ;;
+    tmux)  ensure_tpm ;;
+    gnome) apply_gnome_keybindings ;;
   esac
 done
 

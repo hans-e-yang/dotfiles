@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCHEMA="org.gnome.settings-daemon.plugins.media-keys"
+BASE="/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings"
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+
+declare -A LABEL=(
+  [power]="Power menu"
+  [shortcuts]="Shortcuts menu"
+)
+declare -A BIND=(
+  [power]="<Super>x"
+  [shortcuts]="<Super>c"
+)
+
+if ! gsettings writable "$SCHEMA" custom-keybindings >/dev/null 2>&1; then
+  echo "setup-keybindings: $SCHEMA is not writable (running GNOME session?)" >&2
+  exit 1
+fi
+
+unquote() { local s="${1//\'/}"; printf '%s' "${s//\"/}"; }
+
+raw="$(gsettings get "$SCHEMA" custom-keybindings | tr -d '[]')"
+IFS=',' read -ra parts <<< "$raw"
+keep=()
+for path in "${parts[@]}"; do
+  path="$(unquote "${path// /}")"
+  [ -n "$path" ] && [ "$path" != "@as" ] || continue
+  name="$(unquote "$(gsettings get "$SCHEMA.custom-keybinding:$path" name 2>/dev/null || true)")"
+  case "$name" in
+    "Power menu"|"Shortcuts menu") ;;
+    *) keep+=("$path") ;;
+  esac
+done
+
+for key in power shortcuts; do
+  path="$BASE/custom-o-tiling-$key/"
+  gsettings set "$SCHEMA.custom-keybinding:$path" name "${LABEL[$key]}"
+  gsettings set "$SCHEMA.custom-keybinding:$path" command "$DIR/$key-menu"
+  gsettings set "$SCHEMA.custom-keybinding:$path" binding "${BIND[$key]}"
+  keep+=("$path")
+done
+
+list=""
+for path in "${keep[@]}"; do list+="'$path', "; done
+gsettings set "$SCHEMA" custom-keybindings "[${list%, }]"
+
+echo "registered: ${LABEL[power]} = ${BIND[power]}, ${LABEL[shortcuts]} = ${BIND[shortcuts]}"

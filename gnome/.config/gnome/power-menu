@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+choice="$(zenity --list --title="Power" --text="Choose an action" \
+  --column=Action --hide-header --height=320 --width=260 \
+  "Log out" "Reboot" "Shut down" "Suspend" 2>/dev/null)" || exit 0
+[ -n "$choice" ] || exit 0
+
+case "$choice" in
+  "Log out")   gnome-session-quit --logout --no-prompt ;;
+  "Reboot")    systemctl reboot ;;
+  "Shut down") systemctl poweroff ;;
+  "Suspend")   systemctl suspend ;;
+esac
