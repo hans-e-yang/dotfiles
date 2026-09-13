@@ -42,6 +42,7 @@ keybind = ctrl+shift+e=new_split:down
 # Close focused pane (i3: $mod+q kill). Closes the split, or the whole
 # window/tab if it's the last surface. Overrides the default quit binding.
 keybind = ctrl+shift+q=close_surface
+keybind = ctrl+alt+q=close_surface
 keybind = ctrl+shift+alt+q=quit
 
 # Resize (i3 resize mode: h shrink width, l grow width, j grow height,
@@ -64,3 +65,7 @@ keybind = ctrl+alt+6=goto_tab:6
 keybind = ctrl+alt+7=goto_tab:7
 keybind = ctrl+alt+8=goto_tab:8
 keybind = ctrl+alt+9=goto_tab:9
+
+# Create a tab or a split
+keybind = ctrl+alt+t=new_tab
+keybind = ctrl+shift+t=new_split:right
