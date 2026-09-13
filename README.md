@@ -16,7 +16,7 @@ Three scripts, each with one job:
 
 | script       | what it does                                                                 |
 |--------------|------------------------------------------------------------------------------|
-| `setup.sh`   | **Fresh-machine bootstrap** — run once on a new system. Detects the package manager (apt/dnf/pacman), installs core deps (git, stow, tmux, curl, zip, unzip, C toolchain, fontconfig), starship, the pinned nvim build, a Nerd Font, then asks about optional apps and symlinks the configs. |
+| `setup.sh`   | **Fresh-machine bootstrap** — run once on a new system. Detects the package manager (apt/dnf/pacman), installs core deps (git, stow, tmux, curl, zip, unzip, ripgrep, C toolchain, fontconfig), starship, the pinned nvim build, a Nerd Font, then asks about optional apps and symlinks the configs. |
 | `install.sh` | **Symlink manager** — links (or `-D` unlinks) configs from the repo into `$HOME` via Stow. Safe to re-run: existing files that aren't already symlinks are moved to `*.bak-<timestamp>`. This is what you run on machines that already have setup done. |
 | `apps.sh`    | **Optional toolchain installer** — y/n prompts for dev toolchains (uv, mise) plus the ghostty terminal and fish shell. Installs user-scoped into `$HOME` (distro `ghostty`/`fish` need sudo). Can be run standalone any time, not just during setup. |
 

@@ -9,7 +9,7 @@ source of truth, and editing a live config edits the repo directly.
 
 - `setup.sh` — fresh-machine bootstrap, run from inside a clone. Distro-detects
   (`/etc/os-release` → apt/dnf/pacman), installs core deps (git, stow, tmux, curl,
-  zip, unzip, C toolchain), starship (+ gruvbox-rainbow preset), pinned nvim v0.12.5
+  zip, unzip, ripgrep, C toolchain), starship (+ gruvbox-rainbow preset), pinned nvim v0.12.5
   tarball into `~/.local/share/nvim-linux-x86_64` (asset/dir renamed from
   `nvim-linux64` at v0.10; put on PATH by the repo-owned `~/.bashrc`) plus the
   tree-sitter CLI (`~/.local/bin`, required by nvim-treesitter `main`),

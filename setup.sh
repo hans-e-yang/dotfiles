@@ -33,12 +33,12 @@ detect_pkg_mgr() {
   esac
 }
 
-core_pkgs_apt()    { printf 'git stow tmux curl zip unzip build-essential fontconfig'; }
+core_pkgs_apt()    { printf 'git stow tmux curl zip unzip ripgrep build-essential fontconfig'; }
 # perl-Digest-SHA provides /usr/bin/shasum: Fedora splits it out, and jupynvim's
 # lazy build hook needs it to verify the prebuilt jupynvim-core (it aborts on
 # the missing command before falling back to sha256sum).
-core_pkgs_dnf()    { printf 'git stow tmux curl zip unzip gcc gcc-c++ make fontconfig perl-Digest-SHA'; }
-core_pkgs_pacman() { printf 'git stow tmux curl zip unzip base-devel fontconfig'; }
+core_pkgs_dnf()    { printf 'git stow tmux curl zip unzip ripgrep gcc gcc-c++ make fontconfig perl-Digest-SHA'; }
+core_pkgs_pacman() { printf 'git stow tmux curl zip unzip ripgrep base-devel fontconfig'; }
 
 install_core() {
   case "$PKG" in
