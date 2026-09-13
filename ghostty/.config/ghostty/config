@@ -31,6 +31,10 @@ keybind = ctrl+shift+j=goto_split:down
 keybind = ctrl+shift+k=goto_split:up
 keybind = ctrl+shift+l=goto_split:right
 
+# Focus (i3: $mod+h/j/k/l focus left/down/up/right)
+keybind = ctrl+alt+h=previous_tab
+keybind = ctrl+alt+l=next_tab
+
 # Cycle to the next split (overrides the default previous_tab on this combo)
 keybind = ctrl+shift+tab=goto_split:next
 

@@ -1,9 +1,8 @@
 # Dotfiles
 
 Personal configs for nvim, tmux, i3, gtk (gruvbox theme), the Ghostty terminal
-plus bootstrap tooling for uv, nvm, starship and flatpak apps (steam, discord).
-Works on Debian/Ubuntu/Mint
-(apt), Fedora (dnf) and Arch (pacman).
+plus bootstrap tooling for dev toolchains (uv, nvm, sdkman) and starship.
+Works on Debian/Ubuntu/Mint (apt), Fedora (dnf) and Arch (pacman).
 
 Configs are symlinked into place with [GNU Stow](https://www.gnu.org/software/stow/),
 so editing a live config **is** editing this repo — there is no pull-back script.
@@ -17,9 +16,9 @@ Three scripts, each with one job:
 
 | script       | what it does                                                                 |
 |--------------|------------------------------------------------------------------------------|
-| `setup.sh`   | **Fresh-machine bootstrap** — run once on a new system. Detects the package manager (apt/dnf/pacman), installs core deps (git, stow, tmux, curl, flatpak, C toolchain, unzip, fontconfig), starship, the pinned nvim build, a Nerd Font, then asks about optional apps and symlinks the configs. |
+| `setup.sh`   | **Fresh-machine bootstrap** — run once on a new system. Detects the package manager (apt/dnf/pacman), installs core deps (git, stow, tmux, curl, zip, unzip, C toolchain, fontconfig), starship, the pinned nvim build, a Nerd Font, then asks about optional apps and symlinks the configs. |
 | `install.sh` | **Symlink manager** — links (or `-D` unlinks) configs from the repo into `$HOME` via Stow. Safe to re-run: existing files that aren't already symlinks are moved to `*.bak-<timestamp>`. This is what you run on machines that already have setup done. |
-| `apps.sh`    | **Optional-app installer** — y/n prompts for toolchains (uv, nvm) and apps (ghostty, steam, discord). Installs via the native package manager where possible (Fedora `ghostty` comes from the Terra repo), otherwise flatpak. Can be run standalone any time, not just during setup. |
+| `apps.sh`    | **Optional toolchain installer** — y/n prompts for dev toolchains (uv, nvm, sdkman) and the ghostty terminal. Installs user-scoped into `$HOME` (Fedora `ghostty` comes from the Terra repo). Can be run standalone any time, not just during setup. |
 
 In short: `setup.sh` once per new machine, `install.sh` on every machine (and after
 `git pull`), `apps.sh` whenever you want another optional app.
@@ -61,7 +60,7 @@ cd ~/dotfiles
 ```
 
 - `./setup.sh --skip nvm` — don't install nvm
-- `./setup.sh --install steam` — add steam without prompting for everything
+- `./setup.sh --install sdkman` — add sdkman without prompting for everything
 - setup prompts y/n per app (Enter accepts the default); every action prints the
   exact command it runs
 - Finish with `:Lazy restore` inside nvim, and `i3 -C` to validate i3
@@ -75,19 +74,26 @@ cd ~/dotfiles && git pull
 
 Existing files that aren't already symlinks are moved to `*.bak-<timestamp>`.
 
-## Optional apps (`./apps.sh`)
+## Optional toolchains (`./apps.sh`)
 
-| app     | default | installer                                        |
-|---------|---------|--------------------------------------------------|
-| `uv`    | yes     | astral installer; offers `uv python install`     |
-| `nvm`   | yes     | pinned tag; offers `nvm install --lts`           |
-| `ghostty`| yes    | Fedora: Terra repo; Arch: `extra`; apt: guidance |
-| `steam` | no      | native PM (RPM Fusion enabled on Fedora; flatpak fallback) |
-| `discord`| no     | flatpak                                          |
+| app       | default | installer                                      |
+|-----------|---------|------------------------------------------------|
+| `uv`      | yes     | astral installer; offers `uv python install`   |
+| `nvm`     | yes     | pinned tag; offers `nvm install --lts`         |
+| `sdkman`  | yes     | official installer; JVM/SDK candidates via `sdk` |
+| `ghostty` | yes     | Fedora: Terra repo; Arch: `extra`; apt: guidance |
 
 Use `./apps.sh list`, `./apps.sh install <name>`, or `./apps.sh --all`.
 Add more apps by writing an installer function in `apps.sh` and registering it in
 `APP_DEFAULT` / the name arrays.
+
+### How installation works
+
+Installers are user-scoped (no sudo except the distro package for `ghostty`) and
+print the exact command before running it. `uv`/`nvm`/`sdkman` install into
+`~/.local/bin`, `~/.nvm` and `~/.sdkman`; the repo-owned `~/.bashrc` activates
+each one lazily and only if present, so nothing is appended to it at install time.
+Already-installed tools are detected and skipped.
 
 ## Jupyter notebooks (jupynvim)
 

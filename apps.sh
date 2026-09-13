@@ -10,21 +10,21 @@
 #   ./apps.sh --skip a,b         prompt for everything except a and b
 #   ./apps.sh --dry-run          print commands instead of running them
 #
-# Defaults: uv, nvm and ghostty default to yes; consumer GUI apps (steam,
-# discord) default to no.
+# Defaults: every tool defaults to yes and installs user-scoped.
 # Every action prints the exact command it runs.
 set -euo pipefail
 
 HOME_DIR="$HOME"
 NVM_TAG="v0.40.7"          # pinned nvm release
 UV_URL="https://astral.sh/uv/install.sh"
+SDKMAN_URL="https://get.sdkman.io"
 
-TOOLCHAIN_NAMES=(uv nvm)
-GUI_NAMES=(steam discord ghostty)
+TOOLCHAIN_NAMES=(uv nvm sdkman)
+GUI_NAMES=(ghostty)
 
 # name:default (y/n)
-declare -A APP_DEFAULT=([uv]=y [nvm]=y [steam]=n [discord]=n [ghostty]=y)
-declare -A APP_LABEL=([uv]="uv (python package/version manager)" [nvm]="nvm (node version manager)" [steam]=Steam [discord]=Discord [ghostty]="Ghostty (kitty-graphics terminal, used by jupynvim)")
+declare -A APP_DEFAULT=([uv]=y [nvm]=y [sdkman]=y [ghostty]=y)
+declare -A APP_LABEL=([uv]="uv (python package/version manager)" [nvm]="nvm (node version manager)" [sdkman]="sdkman (JVM/SDK version manager)" [ghostty]="Ghostty (kitty-graphics terminal, used by jupynvim)")
 
 SKIPS=()
 DRY_RUN=0
@@ -87,28 +87,13 @@ install_nvm() {
   fi
 }
 
-# ------------------------------------------------- GUI apps (native PM first)
-# Steam: apt->steam-installer (Mint enables multiverse), dnf->steam (RPM Fusion
-# nonfree), pacman->steam. Discord: pacman->discord, otherwise flatpak only.
-
-install_steam() {
-  case "$PM" in
-    apt)    pkg_or_flatpak "$1" "sudo apt-get install -y steam-installer" com.valvesoftware.Steam ;;
-    dnf)    enable_rpmfusion "$1"
-            pkg_or_flatpak "$1" "sudo dnf install -y steam" com.valvesoftware.Steam ;;
-    pacman) pkg_or_flatpak "$1" "sudo pacman -S --needed --noconfirm steam" com.valvesoftware.Steam ;;
-    *)      flatpak_install "$1" com.valvesoftware.Steam ;;
-  esac
-}
-
-# RPM Fusion nonfree is not enabled by default on Fedora; steam needs it.
-enable_rpmfusion() {
-  if dnf repolist 2>/dev/null | grep -q '^rpmfusion-nonfree'; then return 0; fi
-  local ver
-  ver="$(rpm -E %fedora 2>/dev/null || echo "rawhide")"
-  run_cmd "sudo dnf install -y https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$ver.noarch.rpm"
-  run_cmd "sudo dnf config-manager --set-enabled rpmfusion-nonfree"
-  run_cmd "sudo dnf repolist"
+# ---------------------------------------------------------------- sdkman
+install_sdkman() {
+  if [ -s "$HOME_DIR/.sdkman/bin/sdkman-init.sh" ]; then
+    echo "  $1: already installed (skipping)"
+    return 0
+  fi
+  run_cmd "export SDKMAN_DIR=\"$HOME_DIR/.sdkman\" && curl -s \"$SDKMAN_URL\" | bash"
 }
 
 # ------------------------------------------------- ghostty
@@ -117,7 +102,7 @@ enable_rpmfusion() {
 # https://ghostty.org/docs/install/binary. Terra is a third-party rolling repo;
 # --nogpgcheck applies only to the one-time terra-release bootstrap, the
 # installed repo ships Terra's GPG key. Arch: extra/ghostty. apt: no official
-# package, print guidance and skip (non-fatal, like the discord fallback).
+# package, print guidance and skip (non-fatal).
 enable_terra() {
   if dnf repolist 2>/dev/null | grep -q '^terra'; then return 0; fi
   local ver
@@ -136,41 +121,11 @@ install_ghostty() {
   esac
 }
 
-install_discord() {
-  flatpak_install "$1" com.discordapp.Discord
-}
-
-pkg_or_flatpak() { # $1 name, $2 native cmd, $3 flatpak id
-  if run_cmd "$2"; then
-    echo "  $1: installed via package manager"
-  else
-    echo "  $1: native install failed — falling back to flatpak"
-    flatpak_install "$1" "$3"
-  fi
-}
-
-flatpak_install() { # $1 name, $2 flatpak id
-  local app_id="$2"
-  if ! command -v flatpak >/dev/null 2>&1; then
-    echo "  $1: flatpak not found and no native package — run setup.sh first (it installs flatpak)"
-    return 0
-  fi
-  if is_installed "$1"; then
-    echo "  $1: already installed (skipping)"
-    return 0
-  fi
-  if ! flatpak remotes --user 2>/dev/null | awk '{print $1}' | grep -qx flathub; then
-    run_cmd "flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo"
-  fi
-  run_cmd "flatpak install --user -y flathub $app_id"
-}
-
 run_app() { # $1 name
   case "$1" in
     uv)      install_uv "$1" ;;
     nvm)     install_nvm "$1" ;;
-    steam)   install_steam "$1" ;;
-    discord) install_discord "$1" ;;
+    sdkman)  install_sdkman "$1" ;;
     ghostty) install_ghostty "$1" ;;
     *) die "no installer for '$1'" ;;
   esac
@@ -180,9 +135,7 @@ is_installed() { # $1 name
   case "$1" in
     uv)      command -v uv >/dev/null 2>&1 || [ -x "$HOME_DIR/.local/bin/uv" ] ;;
     nvm)     [ -s "$HOME_DIR/.nvm/nvm.sh" ] ;;
-    steam)   command -v steam >/dev/null 2>&1 \
-               || { command -v flatpak >/dev/null 2>&1 && flatpak info com.valvesoftware.Steam >/dev/null 2>&1; } ;;
-    discord) command -v flatpak >/dev/null 2>&1 && flatpak info com.discordapp.Discord >/dev/null 2>&1 ;;
+    sdkman)  [ -s "$HOME_DIR/.sdkman/bin/sdkman-init.sh" ] ;;
     ghostty) command -v ghostty >/dev/null 2>&1 ;;
     *)       return 1 ;;
   esac

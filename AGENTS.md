@@ -9,7 +9,7 @@ source of truth, and editing a live config edits the repo directly.
 
 - `setup.sh` — fresh-machine bootstrap, run from inside a clone. Distro-detects
   (`/etc/os-release` → apt/dnf/pacman), installs core deps (git, stow, tmux, curl,
-  flatpak, C toolchain), starship (+ gruvbox-rainbow preset), pinned nvim v0.12.5
+  zip, unzip, C toolchain), starship (+ gruvbox-rainbow preset), pinned nvim v0.12.5
   tarball into `~/.local/share/nvim-linux-x86_64` (asset/dir renamed from
   `nvim-linux64` at v0.10; put on PATH by the repo-owned `~/.bashrc`) plus the
   tree-sitter CLI (`~/.local/bin`, required by nvim-treesitter `main`),
@@ -33,20 +33,18 @@ source of truth, and editing a live config edits the repo directly.
   `-D` unlinks; with no names it unlinks core plus currently linked desktop configs
   (packages that aren't linked are skipped instead of erroring). Nothing appends to
   `~/.bashrc` — the repo owns it (see layout).
-- `apps.sh` — optional toolchains/apps with y/n prompts (Enter = manifest default;
-  defaults: uv+nvm+ghostty yes, steam+discord no). Non-tty stdin falls back to
+- `apps.sh` — optional dev toolchains with y/n prompts (Enter = manifest default;
+  all default to yes: uv+nvm+sdkman+ghostty). Non-tty stdin falls back to
   defaults.
   `list`, `install <names>`, `--all`, `--skip a,b`, `--dry-run`. Every installer
-  echoes its exact command before running. GUI apps install via the native package
-  manager when available (steam: apt `steam-installer` / dnf `steam` after enabling
-  RPM Fusion nonfree, which is **not** enabled by default / pacman `steam`; discord:
-  flatpak only; ghostty: dnf via the Terra (Fyralabs) third-party repo — the
+  echoes its exact command before running and installs user-scoped:
+  `uv` (astral installer, `~/.local/bin`), `nvm` (pinned tag, `~/.nvm`),
+  `sdkman` (official installer, `~/.sdkman`; needs core dep `zip`/`unzip`), and
+  `ghostty` via dnf/the Terra (Fyralabs) third-party repo — the
   officially documented Ghostty source — bootstrapped with
   `--nogpgcheck --repofrompath 'terra,https://repos.fyralabs.com/terra$releasever'`,
-  pacman `extra`, apt prints manual guidance and skips), falling back to flatpak —
-  which adds flathub
-  as a **user** remote (`flatpak remotes --user`) since Mint's flathub is a system
-  remote and `flatpak install --user` can't see it. Register new apps in
+  pacman `extra`, apt prints manual guidance and skips. `.bashrc` activates
+  uv/nvm/sdkman lazily and only if present. Register new apps in
   `APP_DEFAULT`, `TOOLCHAIN_NAMES`/`GUI_NAMES`, and an `install_<name>` function.
 - There is **no update/pull-back script** — symlinks removed that need.
 

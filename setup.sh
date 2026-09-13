@@ -29,16 +29,16 @@ detect_pkg_mgr() {
     fedora|rhel|centos|rocky|alma)                          PKG=dnf ;;
     arch|endeavouros|manjaro|garuda|cachyos)                PKG=pacman ;;
     *) echo "error: unsupported distro '${ID:-}'. Install git, stow, tmux, curl," \
-           "flatpak and a C toolchain manually, then re-run."; exit 1 ;;
+           "zip, unzip and a C toolchain manually, then re-run."; exit 1 ;;
   esac
 }
 
-core_pkgs_apt()    { printf 'git stow tmux curl flatpak build-essential unzip fontconfig'; }
+core_pkgs_apt()    { printf 'git stow tmux curl zip unzip build-essential fontconfig'; }
 # perl-Digest-SHA provides /usr/bin/shasum: Fedora splits it out, and jupynvim's
 # lazy build hook needs it to verify the prebuilt jupynvim-core (it aborts on
 # the missing command before falling back to sha256sum).
-core_pkgs_dnf()    { printf 'git stow tmux curl flatpak gcc gcc-c++ make unzip fontconfig perl-Digest-SHA'; }
-core_pkgs_pacman() { printf 'git stow tmux curl flatpak base-devel unzip fontconfig'; }
+core_pkgs_dnf()    { printf 'git stow tmux curl zip unzip gcc gcc-c++ make fontconfig perl-Digest-SHA'; }
+core_pkgs_pacman() { printf 'git stow tmux curl zip unzip base-devel fontconfig'; }
 
 install_core() {
   case "$PKG" in
@@ -146,7 +146,7 @@ install_ts_cli
 echo "==> installing nerd font (DejaVu Sans Mono)"
 install_nerd_font
 
-echo "==> installing optional apps (uv, nvm, steam, discord)"
+echo "==> installing optional apps (uv, nvm, sdkman, ghostty)"
 "$REPO_DIR/apps.sh" "$@"
 
 echo "==> symlinking configs"
