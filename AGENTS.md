@@ -34,18 +34,24 @@ source of truth, and editing a live config edits the repo directly.
   (packages that aren't linked are skipped instead of erroring). Nothing appends to
   `~/.bashrc` — the repo owns it (see layout).
 - `apps.sh` — optional dev toolchains with y/n prompts (Enter = manifest default;
-  all default to yes: uv+nvm+sdkman+ghostty). Non-tty stdin falls back to
+  all default to yes: uv+mise+ghostty+fish). Non-tty stdin falls back to
   defaults.
   `list`, `install <names>`, `--all`, `--skip a,b`, `--dry-run`. Every installer
   echoes its exact command before running and installs user-scoped:
-  `uv` (astral installer, `~/.local/bin`), `nvm` (pinned tag, `~/.nvm`),
-  `sdkman` (official installer, `~/.sdkman`; needs core dep `zip`/`unzip`), and
+  `uv` (astral installer, `~/.local/bin`) and `mise` (official `https://mise.run`
+  installer, `~/.local/bin`; offers global `node@lts`, `java@21`, `kotlin@latest`
+  and `pnpm@latest`) — mise replaced
+  the old fnm/sdkman pair, since it covers Node and the Android JDK in one config
+  (Gradle comes from the project wrapper, Kotlin from the Gradle plugin). Also
   `ghostty` via dnf/the Terra (Fyralabs) third-party repo — the
   officially documented Ghostty source — bootstrapped with
   `--nogpgcheck --repofrompath 'terra,https://repos.fyralabs.com/terra$releasever'`,
-  pacman `extra`, apt prints manual guidance and skips. `.bashrc` activates
-  uv/nvm/sdkman lazily and only if present. Register new apps in
-  `APP_DEFAULT`, `TOOLCHAIN_NAMES`/`GUI_NAMES`, and an `install_<name>` function.
+  pacman `extra`, apt prints manual guidance and skips; and `fish` from the distro
+  package (apt/dnf/pacman), which also appends it to `/etc/shells` and offers
+  `chsh -s` (needs sudo). `~/.bashrc` puts `~/.local/bin` on the
+  PATH and activates mise (uv too) lazily and only if present. Register new
+  apps in `APP_DEFAULT`, `TOOLCHAIN_NAMES`/`GUI_NAMES`, and an `install_<name>`
+  function.
 - There is **no update/pull-back script** — symlinks removed that need.
 
 ## Stow package layout
@@ -56,6 +62,10 @@ with `-t $HOME` yields a single symlink per config: `nvim/.config/nvim/...` →
 `gtk-3.0/.config/gtk-3.0/settings.ini`; `ghostty/.config/ghostty/{config,themes/*}` →
 `~/.config/ghostty` (Terra's ghostty rpm ships no themes, so `themes/gruvbox-dark` is
 vendored in-repo); `tmux/.config/tmux/tmux.conf`;
+`fish/.config/fish/config.fish` → `~/.config/fish` (fish reads it every session:
+env at the top, interactive-only `mise`/starship activation + abbreviations
+guarded by `status is-interactive`; aliases from `home/.bash_aliases` mirrored as
+`abbr`s);
 `gnome/.config/gnome/{power-menu,shortcuts-menu,setup-keybindings}` → `~/.config/gnome`
 (GNOME lacks i3's modal keybindings, so `Super+x`/`Super+c` pop zenity choosers that
 mirror i3's exit/shortcuts modes; `setup-keybindings` idempotently registers them as
@@ -66,7 +76,7 @@ hook);
 `home/.bashrc` → `~/.bashrc` and `home/.bash_aliases` → `~/.bash_aliases`. The
 repo-owned `~/.bashrc` is portable/guarded: it puts the pinned nvim + `~/.local/bin`
 on PATH, sets `EDITOR`/`VISUAL`/`SUDO_EDITOR=nvim`, sources `~/.bash_aliases`, and
-lazy-loads starship/nvm/completion — so nothing is appended to it at install time
+lazy-loads starship/mise/completion — so nothing is appended to it at install time
 and it works on Fedora/Arch too (Debian-only auto-source caveat no longer applies).
 `home/.bash_aliases` was deduped when moved (old copy.sh appended → dupes). The
 stale root-level `after/` dir (unused duplicate of `nvim/.config/nvim/after/`) was
@@ -76,12 +86,14 @@ removed on the 0.12 bump — edit only the copy under `nvim/`.
 
 - `tmux/.config/tmux/plugins/` is gitignored: TPM clones plugins through the
   `~/.config/tmux` symlink into the repo working tree.
+- `fish/.config/fish/fish_variables` is gitignored: fish writes its universal
+  variables through the `~/.config/fish` symlink into the repo working tree.
 - `~/.bashrc` is repo-owned (stowed from `home/.bashrc`), not appended to. All
-  tool activation is guarded inside it (starship/nvm/PATH only fire if present).
+  tool activation is guarded inside it (starship/mise/PATH only fire if present).
   Put per-machine/per-distro overrides in `~/.bashrc.d/*` (sourced last), not by
   editing the stowed file with install-time appends.
-- Version pins are deliberate: nvim v0.12.5 (setup.sh + PATH), nvm tag in apps.sh
-  (`NVM_TAG`), lazy.nvim `lazy-lock.json`. After plugin changes run `:Lazy restore`.
+- Version pins are deliberate: nvim v0.12.5 (setup.sh + PATH), lazy.nvim
+  `lazy-lock.json`. After plugin changes run `:Lazy restore`.
 - Plugin specs ending `.luab` (e.g. `nvim-ufo.luab`) are intentionally disabled —
   lazy.nvim only loads `.lua`. Rename to toggle.
 - `i3/config` references `$HOME/.config/i3/picom.conf` and `i3status.conf`; keep

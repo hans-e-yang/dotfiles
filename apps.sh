@@ -15,16 +15,15 @@
 set -euo pipefail
 
 HOME_DIR="$HOME"
-NVM_TAG="v0.40.7"          # pinned nvm release
 UV_URL="https://astral.sh/uv/install.sh"
-SDKMAN_URL="https://get.sdkman.io"
+MISE_URL="https://mise.run"
 
-TOOLCHAIN_NAMES=(uv nvm sdkman)
-GUI_NAMES=(ghostty)
+TOOLCHAIN_NAMES=(uv mise)
+GUI_NAMES=(ghostty fish)
 
 # name:default (y/n)
-declare -A APP_DEFAULT=([uv]=y [nvm]=y [sdkman]=y [ghostty]=y)
-declare -A APP_LABEL=([uv]="uv (python package/version manager)" [nvm]="nvm (node version manager)" [sdkman]="sdkman (JVM/SDK version manager)" [ghostty]="Ghostty (kitty-graphics terminal, used by jupynvim)")
+declare -A APP_DEFAULT=([uv]=y [mise]=y [ghostty]=y [fish]=y)
+declare -A APP_LABEL=([uv]="uv (python package/version manager)" [mise]="mise (polyglot version manager: Node, Java, ...)" [ghostty]="Ghostty (kitty-graphics terminal, used by jupynvim)" [fish]="fish (friendly interactive shell; set as login shell)")
 
 SKIPS=()
 DRY_RUN=0
@@ -75,25 +74,32 @@ install_uv() {
   fi
 }
 
-# ---------------------------------------------------------------- nvm
-install_nvm() {
-  if [ -s "$HOME_DIR/.nvm/nvm.sh" ]; then
+# ---------------------------------------------------------------- mise
+# Polyglot version manager (replaces fnm + sdkman). Official installer drops the
+# binary in ~/.local/bin (already on PATH via .bashrc/.config/fish). Manages the
+# Android JDK here; Gradle comes from the per-project wrapper (no global install)
+# and Android's Kotlin compiler from the Gradle plugin — the global Kotlin option
+# is only for standalone kotlinc. Python stays on uv (mise installs interpreters,
+# not packaging).
+install_mise() {
+  local bin="$HOME_DIR/.local/bin/mise"
+  if command -v mise >/dev/null 2>&1 || [ -x "$bin" ]; then
     echo "  $1: already installed (skipping)"
     return 0
   fi
-  run_cmd "git clone --depth=1 --branch $NVM_TAG https://github.com/nvm-sh/nvm.git \"$HOME_DIR/.nvm\""
-  if ask "  install Node LTS and set it as the default?" y; then
-    run_cmd ". \"$HOME_DIR/.nvm/nvm.sh\" && nvm install --lts && nvm alias default 'lts/*'"
+  run_cmd "curl -fsSL $MISE_URL | sh"
+  if ask "  install Node LTS as a global default?" y; then
+    run_cmd "\"$bin\" use -g node@lts"
   fi
-}
-
-# ---------------------------------------------------------------- sdkman
-install_sdkman() {
-  if [ -s "$HOME_DIR/.sdkman/bin/sdkman-init.sh" ]; then
-    echo "  $1: already installed (skipping)"
-    return 0
+  if ask "  install Java 21 as a global default?" y; then
+    run_cmd "\"$bin\" use -g java@21"
   fi
-  run_cmd "export SDKMAN_DIR=\"$HOME_DIR/.sdkman\" && curl -s \"$SDKMAN_URL\" | bash"
+  if ask "  install Kotlin as a global default?" y; then
+    run_cmd "\"$bin\" use -g kotlin@latest"
+  fi
+  if ask "  install pnpm as a global default?" y; then
+    run_cmd "\"$bin\" use -g pnpm@latest"
+  fi
 }
 
 # ------------------------------------------------- ghostty
@@ -121,12 +127,33 @@ install_ghostty() {
   esac
 }
 
+# ---------------------------------------------------------------- fish
+# Friendly interactive shell from the distro package, then chsh to it. Adds the
+# binary to /etc/shells first (chsh refuses an unlisted shell).
+install_fish() {
+  case "$PM" in
+    apt)    run_cmd "sudo apt-get install -y fish" ;;
+    dnf)    run_cmd "sudo dnf install -y fish" ;;
+    pacman) run_cmd "sudo pacman -S --needed --noconfirm fish" ;;
+    *)      echo "  $1: unknown package manager — install fish manually (skipping)"
+            return 0 ;;
+  esac
+  local fish_bin
+  fish_bin="$(command -v fish 2>/dev/null || echo /usr/bin/fish)"
+  if ! grep -qx "$fish_bin" /etc/shells 2>/dev/null; then
+    run_cmd "echo \"$fish_bin\" | sudo tee -a /etc/shells"
+  fi
+  if ask "  set fish as your login shell?" y; then
+    run_cmd "chsh -s \"$fish_bin\""
+  fi
+}
+
 run_app() { # $1 name
   case "$1" in
     uv)      install_uv "$1" ;;
-    nvm)     install_nvm "$1" ;;
-    sdkman)  install_sdkman "$1" ;;
+    mise)    install_mise "$1" ;;
     ghostty) install_ghostty "$1" ;;
+    fish)    install_fish "$1" ;;
     *) die "no installer for '$1'" ;;
   esac
 }
@@ -134,9 +161,9 @@ run_app() { # $1 name
 is_installed() { # $1 name
   case "$1" in
     uv)      command -v uv >/dev/null 2>&1 || [ -x "$HOME_DIR/.local/bin/uv" ] ;;
-    nvm)     [ -s "$HOME_DIR/.nvm/nvm.sh" ] ;;
-    sdkman)  [ -s "$HOME_DIR/.sdkman/bin/sdkman-init.sh" ] ;;
+    mise)    command -v mise >/dev/null 2>&1 || [ -x "$HOME_DIR/.local/bin/mise" ] ;;
     ghostty) command -v ghostty >/dev/null 2>&1 ;;
+    fish)    command -v fish >/dev/null 2>&1 ;;
     *)       return 1 ;;
   esac
 }

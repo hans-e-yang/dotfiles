@@ -32,10 +32,6 @@ if _nvim="$(command -v nvim 2>/dev/null)"; then
 fi
 unset _nvim
 
-# nvm — loaded lazily only if apps.sh installed it.
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-
 # ----------------------------------------------------------- interactive-only
 # Skip prompt/history/completion/alias setup in non-interactive shells.
 case $- in
@@ -78,6 +74,6 @@ if [ -d "$HOME/.bashrc.d" ]; then
   unset _rc
 fi
 
-#THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
-export SDKMAN_DIR="$HOME/.sdkman"
-[[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
+# mise (polyglot version manager: Node, Java, ...; installed by apps.sh). Kept
+# last so its cd hook wins. Python packaging stays on uv.
+command -v mise >/dev/null 2>&1 && eval "$(mise activate bash)"

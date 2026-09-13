@@ -7,16 +7,16 @@
 # $HOME makes ~/.config/nvim a symlink into this repo. The home package
 # stows top-level dotfiles (home/.bashrc -> ~/.bashrc, home/.bash_aliases ->
 # ~/.bash_aliases). ~/.bashrc sources ~/.bash_aliases itself, so nothing is
-# appended to it at install time.
+# appended to it at install time; fish/.config/fish -> ~/.config/fish.
 #
 # Usage:
-#   ./install.sh                 link core configs (nvim tmux home); on a
+#   ./install.sh                 link core configs (nvim tmux fish home); on a
 #                                desktop, each desktop config (i3, gtk-3.0,
 #                                ghostty, gnome) is offered via a [y/N] prompt —
 #                                nothing desktop-specific is linked silently
 #                                (non-tty stdin: default answer = no)
 #   ./install.sh [pkg ...]       link only the named packages
-#                                (nvim tmux i3 gtk-3.0 ghostty gnome home)
+#                                (nvim tmux fish i3 gtk-3.0 ghostty gnome home)
 #   ./install.sh --all           link every package, no prompts
 #   ./install.sh -D [pkg ...]    unlink the given packages (stow -D); with no
 #                                names, unlink core + currently linked desktop
@@ -35,13 +35,13 @@ REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 
 HOME_PKG="home"
 
-CORE_PKGS=(nvim tmux "$HOME_PKG")
+CORE_PKGS=(nvim tmux fish "$HOME_PKG")
 DESKTOP_PKGS=(i3 gtk-3.0 ghostty gnome)
 
 POP_SHELL_UUID="pop-shell@system76.com"
 
-log()  { printf '\033[1;34m[link]\0033[0m %s\n' "$*"; }
-die()  { printf '\033[1;31m[link]\0033[0m %s\n' "$*" >&2; exit 1; }
+log()  { printf '\033[1;34m[link]\033[0m %s\n' "$*"; }
+die()  { printf '\033[1;31m[link]\033[0m %s\n' "$*" >&2; exit 1; }
 
 usage() { sed -n '2,23p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; }
 
@@ -245,7 +245,7 @@ NO_PROMPT=0
 pkgs=()
 for a in "$@"; do
   case "$a" in
-    --all) pkgs=(nvim tmux i3 gtk-3.0 ghostty gnome "$HOME_PKG"); NO_PROMPT=1 ;;
+    --all) pkgs=(nvim tmux fish i3 gtk-3.0 ghostty gnome "$HOME_PKG"); NO_PROMPT=1 ;;
     -D)    mode=unlink ;;
     -h|--help) usage; exit 0 ;;
     --*)   die "unknown flag: $a (see ./install.sh --help)" ;;
@@ -291,4 +291,4 @@ for pkg in "${pkgs[@]}"; do
   esac
 done
 
-log "done. open a new shell for bash changes; run ':Lazy restore' inside nvim if plugins changed."
+log "done. open a new shell for bash/fish changes; run ':Lazy restore' inside nvim if plugins changed."

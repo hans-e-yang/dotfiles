@@ -146,7 +146,7 @@ install_ts_cli
 echo "==> installing nerd font (DejaVu Sans Mono)"
 install_nerd_font
 
-echo "==> installing optional apps (uv, nvm, sdkman, ghostty)"
+echo "==> installing optional apps (uv, mise, ghostty, fish)"
 "$REPO_DIR/apps.sh" "$@"
 
 echo "==> symlinking configs"
@@ -155,7 +155,7 @@ echo "==> symlinking configs"
 cat <<EOF
 
 Done. Next steps:
-  1. source ~/.bashrc (or open a new shell)
+  1. source ~/.bashrc, or open a new shell (fish reads config.fish itself)
   2. in nvim run :Lazy restore to sync plugins to the lockfile
   3. if i3 was linked, validate with: i3 -C
 EOF

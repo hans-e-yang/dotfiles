@@ -1,7 +1,7 @@
 # Dotfiles
 
 Personal configs for nvim, tmux, i3, gtk (gruvbox theme), the Ghostty terminal
-plus bootstrap tooling for dev toolchains (uv, nvm, sdkman) and starship.
+plus bootstrap tooling for dev toolchains (uv, mise) and starship.
 Works on Debian/Ubuntu/Mint (apt), Fedora (dnf) and Arch (pacman).
 
 Configs are symlinked into place with [GNU Stow](https://www.gnu.org/software/stow/),
@@ -18,7 +18,7 @@ Three scripts, each with one job:
 |--------------|------------------------------------------------------------------------------|
 | `setup.sh`   | **Fresh-machine bootstrap** — run once on a new system. Detects the package manager (apt/dnf/pacman), installs core deps (git, stow, tmux, curl, zip, unzip, C toolchain, fontconfig), starship, the pinned nvim build, a Nerd Font, then asks about optional apps and symlinks the configs. |
 | `install.sh` | **Symlink manager** — links (or `-D` unlinks) configs from the repo into `$HOME` via Stow. Safe to re-run: existing files that aren't already symlinks are moved to `*.bak-<timestamp>`. This is what you run on machines that already have setup done. |
-| `apps.sh`    | **Optional toolchain installer** — y/n prompts for dev toolchains (uv, nvm, sdkman) and the ghostty terminal. Installs user-scoped into `$HOME` (Fedora `ghostty` comes from the Terra repo). Can be run standalone any time, not just during setup. |
+| `apps.sh`    | **Optional toolchain installer** — y/n prompts for dev toolchains (uv, mise) plus the ghostty terminal and fish shell. Installs user-scoped into `$HOME` (distro `ghostty`/`fish` need sudo). Can be run standalone any time, not just during setup. |
 
 In short: `setup.sh` once per new machine, `install.sh` on every machine (and after
 `git pull`), `apps.sh` whenever you want another optional app.
@@ -33,6 +33,7 @@ In short: `setup.sh` once per new machine, `install.sh` on every machine (and af
 | `gtk-3.0`| `~/.config/gtk-3.0`     |                                              |
 | `ghostty`| `~/.config/ghostty`     | config + vendored `themes/gruvbox-dark`      |
 | `gnome`  | `~/.config/gnome`       | `Super+x` power / `Super+c` shortcuts choosers |
+| `fish`   | `~/.config/fish`        | `config.fish` + abbreviations (`mise`/starship) |
 | `home`   | `~`                     | portable, guarded `.bashrc` + `.bash_aliases` |
 
 `i3`, `gtk-3.0`, `ghostty` and `gnome` are desktop configs: with no args they are
@@ -59,8 +60,8 @@ cd ~/dotfiles
 ./setup.sh            # distro detect → deps → starship → nvim → apps → symlink
 ```
 
-- `./setup.sh --skip nvm` — don't install nvm
-- `./setup.sh --install sdkman` — add sdkman without prompting for everything
+- `./setup.sh --skip mise` — don't install mise
+- `./setup.sh --install uv` — add uv without prompting for everything
 - setup prompts y/n per app (Enter accepts the default); every action prints the
   exact command it runs
 - Finish with `:Lazy restore` inside nvim, and `i3 -C` to validate i3
@@ -79,20 +80,28 @@ Existing files that aren't already symlinks are moved to `*.bak-<timestamp>`.
 | app       | default | installer                                      |
 |-----------|---------|------------------------------------------------|
 | `uv`      | yes     | astral installer; offers `uv python install`   |
-| `nvm`     | yes     | pinned tag; offers `nvm install --lts`         |
-| `sdkman`  | yes     | official installer; JVM/SDK candidates via `sdk` |
+| `mise`    | yes     | official installer; offers global `node@lts`, `java@21`, `kotlin@latest`, `pnpm@latest` |
 | `ghostty` | yes     | Fedora: Terra repo; Arch: `extra`; apt: guidance |
+| `fish`    | yes     | distro package; adds to `/etc/shells`; offers `chsh` |
 
 Use `./apps.sh list`, `./apps.sh install <name>`, or `./apps.sh --all`.
 Add more apps by writing an installer function in `apps.sh` and registering it in
 `APP_DEFAULT` / the name arrays.
 
+`mise` replaces the old fnm + sdkman pair: it manages Node, Java, Kotlin, pnpm
+and other runtimes from one config. For Android/Kotlin, Gradle comes from the
+per-project wrapper and Android's Kotlin compiler from the Gradle plugin, so the
+global Kotlin option is only for standalone `kotlinc`; the JDK (Java 21) is what
+Android needs from mise. Python stays on `uv` — mise installs interpreters
+but doesn't replace `uv`'s packaging/venv/tool features.
+
 ### How installation works
 
-Installers are user-scoped (no sudo except the distro package for `ghostty`) and
-print the exact command before running it. `uv`/`nvm`/`sdkman` install into
-`~/.local/bin`, `~/.nvm` and `~/.sdkman`; the repo-owned `~/.bashrc` activates
-each one lazily and only if present, so nothing is appended to it at install time.
+Installers are user-scoped (distro packages `ghostty`/`fish`, plus `fish`'s
+`/etc/shells` + `chsh`, need sudo) and
+print the exact command before running it. `uv` and `mise` install into
+`~/.local/bin`; the repo-owned `~/.bashrc` activates each one
+lazily and only if present, so nothing is appended to it at install time.
 Already-installed tools are detected and skipped.
 
 ## Jupyter notebooks (jupynvim)
@@ -116,7 +125,6 @@ inline images working.
 
 - Neovim v0.12.5 (downloaded as `nvim-linux-x86_64.tar.gz` to `~/.local/share/nvim-linux-x86_64`, put on PATH by `~/.bashrc`)
 - DejaVu Sans Mono Nerd Font v3.3.0 (installed to `~/.local/share/fonts`)
-- nvm v0.40.7
 - lazy.nvim plugins pinned via `lazy-lock.json`; run `:Lazy restore` after changes
 - tmux 3.4, i3 4.23, picom v10 (as used on the reference machine)
 
