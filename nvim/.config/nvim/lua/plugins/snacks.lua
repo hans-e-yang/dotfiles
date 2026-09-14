@@ -1,5 +1,6 @@
--- VSCode-style tmux panels, powered by snacks.terminal (terminal module only).
--- Each panel runs a per-project tmux session so it persists across toggles/nvim restarts.
+-- VSCode-style right panel, powered by snacks.terminal (terminal module only).
+-- One per-project tmux session hosts two windows (`opencode` + `term`), so both
+-- persist across toggles/nvim restarts and are shareable from a normal terminal.
 
 local function project_root()
   local cwd = vim.fn.getcwd()
@@ -18,88 +19,48 @@ local function project_key()
   return name
 end
 
--- tmux new-session -A attaches when the session already exists, else creates it.
-local function session(role, command)
-  local cmd = { "tmux", "new-session", "-A", "-s", ("nvim-%s-%s"):format(project_key(), role) }
-  if command then
-    table.insert(cmd, command)
+local function session_name()
+  return ("nvim-%s"):format(project_key())
+end
+
+-- `new-session -A -d` creates the session when missing and is a no-op when it
+-- already exists. The `term` window is added only if it isn't there yet.
+local function ensure_session()
+  local name = session_name()
+  local cwd = project_root()
+  vim.fn.system({ "tmux", "new-session", "-A", "-d", "-s", name, "-c", cwd, "-n", "opencode", "opencode" })
+  local wins = vim.fn.systemlist({ "tmux", "list-windows", "-t", name, "-F", "#{window_name}" })
+  if vim.v.shell_error ~= 0 or not vim.tbl_contains(wins, "term") then
+    vim.fn.system({ "tmux", "new-window", "-t", name, "-c", cwd, "-n", "term" })
   end
-  return cmd
+  return name
 end
 
-local function term_cmd()
-  return session("term")
-end
-
-local function opencode_cmd()
-  return session("opencode", "opencode")
-end
-
-local function term_opts(main)
-  local opts = {
-    cwd = project_root(),
-    win = {
-      position = "bottom",
-      relative = "win",
-      height = 0.25,
-      min_height = 8,
-    },
-  }
-  if main then
-    opts.win.win = main
-  end
-  return opts
-end
-
-local function opencode_opts()
+local function panel_opts()
   return {
     cwd = project_root(),
     win = {
       position = "right",
       relative = "editor",
-      width = 0.33,
+      width = 0.5,
       min_width = 60,
     },
   }
-end
-
--- The window the bottom panel should attach to, so the layout stays L-shaped.
-local function main_window()
-  local cur = vim.api.nvim_get_current_win()
-  if vim.bo[vim.api.nvim_win_get_buf(cur)].filetype ~= "snacks_terminal" then
-    return cur
-  end
-  for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
-    if vim.bo[vim.api.nvim_win_get_buf(win)].filetype ~= "snacks_terminal" then
-      return win
-    end
-  end
-  return cur
 end
 
 return {
   "folke/snacks.nvim",
   lazy = false,
   priority = 1000,
-  opts = { terminal = { win = { wo = { winbar = ""}}} },
+  opts = { terminal = { win = { wo = { winbar = "" } } } },
   config = function(_, opts)
     require("snacks").setup(opts)
 
     local terminal = require("snacks.terminal")
 
-    vim.keymap.set("n", "<leader>tb", function()
-      terminal.toggle(term_cmd(), term_opts())
-    end, { desc = "Terminal: toggle bottom panel (tmux)" })
-
-    vim.keymap.set("n", "<leader>to", function()
-      terminal.toggle(opencode_cmd(), opencode_opts())
-    end, { desc = "Terminal: toggle opencode panel (tmux)" })
-
-    vim.keymap.set("n", "<leader>ta", function()
-      local main = main_window()
-      terminal.get(opencode_cmd(), opencode_opts()):show()
-      terminal.get(term_cmd(), term_opts(main)):show()
-    end, { desc = "Terminal: arrange VSCode workspace" })
+    vim.keymap.set("n", "<leader>o", function()
+      terminal.toggle({ "tmux", "attach", "-t", ensure_session() }, panel_opts())
+    end, { desc = "Terminal: toggle opencode/term panel (tmux)" })
 
     vim.keymap.set({ "n", "t" }, "<C-q>", function()
       if #vim.api.nvim_tabpage_list_wins(0) > 1 then

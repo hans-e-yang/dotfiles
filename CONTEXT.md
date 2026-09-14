@@ -7,17 +7,16 @@ docs, and issues.
 ## Language
 
 **Panel**:
-A `snacks.terminal` split in nvim managed by the workspace keymaps. The bottom panel is
-the *term* panel; the right panel is the *opencode* panel.
+The right-side `snacks.terminal` split in nvim, toggled by `<leader>o`. It attaches
+to the project's tmux session and takes half the editor width.
 _Avoid_: terminal pane, sidebar, drawer
 
-**Workspace**:
-The L-shaped nvim layout of editor + right opencode panel + bottom term panel, produced
-by `<leader>ta`. The layout is non-destructive: it adds panels without closing existing
-splits.
-_Avoid_: IDE mode, layout preset, dashboard
+**Session window**:
+A tmux window inside a project session. Each session has an `opencode` window and a
+plain `term` window; switch between them with the tmux prefix (`C-Space n`).
+_Avoid_: tab, pane, buffer
 
 **Project key**:
 The sanitized name of the current git repository root (fallback: the working directory
-basename) that scopes a project's tmux sessions.
+basename) that scopes a project's tmux session `nvim-<project>`.
 _Avoid_: project name, repo slug, workspace id

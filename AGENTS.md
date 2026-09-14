@@ -24,7 +24,7 @@ source of truth, and editing a live config edits the repo directly.
   Existing non-symlink targets are moved to
   `*.bak-<timestamp>` first (before stow, since stow refuses to clobber). Hooks:
   clones TPM + installs plugins when tmux links; when gnome links, registers our
-  custom media-key bindings (`Super+x`/`Super+c`) and *offers* to install Pop
+  custom media-key bindings (`Super+x`/`Super+c`/`Super+Return`) and *offers* to install Pop
   Shell (all best-effort, non-fatal). Pop Shell is GNOME-only, so it is prompted
   with a warning and defaults to no (non-tty: skip; `--all` skips it entirely).
   Fedora uses the `dnf` package; apt/pacman build `pop-os/shell` from source into
@@ -68,7 +68,8 @@ guarded by `status is-interactive`; aliases from `home/.bash_aliases` mirrored a
 `abbr`s);
 `gnome/.config/gnome/{power-menu,shortcuts-menu,setup-keybindings}` → `~/.config/gnome`
 (GNOME lacks i3's modal keybindings, so `Super+x`/`Super+c` pop zenity choosers that
-mirror i3's exit/shortcuts modes; `setup-keybindings` idempotently registers them as
+mirror i3's exit/shortcuts modes, while `Super+Return` launches ghostty like i3's
+terminal bind; `setup-keybindings` idempotently registers them as
 media-key custom bindings, forces 10 static workspaces and binds
 `Super+1..0`/`Super+Shift+1..0` to switch/move (unbinding the dash's `Super+<n>`
 app-launchers so i3 muscle memory carries over), and is invoked by the install.sh
@@ -101,15 +102,16 @@ removed on the 0.12 bump — edit only the copy under `nvim/`.
 - TPM init line (`run '~/.config/tmux/plugins/tpm/tpm'`) must stay the last line of
   `tmux/tmux.conf`.
 - setup.sh needs sudo for package installs; apps.sh installs are user-scoped.
-- nvim VSCode-style panels are `snacks.terminal`, installed terminal-only
-  (spec: `nvim/.config/nvim/lua/plugins/snacks.lua`). `<leader>tb` toggles the
-  bottom *term* panel, `<leader>to` the right *opencode* panel, `<leader>ta`
-  arranges both (non-destructive). Each panel runs a per-project tmux session
-  `nvim-<project>-{term,opencode}` created with `new-session -A`, so sessions
-  persist across toggles/nvim restarts and are shareable from a normal terminal.
+- nvim VSCode-style panel is `snacks.terminal`, installed terminal-only
+  (spec: `nvim/.config/nvim/lua/plugins/snacks.lua`). `<leader>o` toggles a
+  right-side split at 50% width running a per-project tmux session
+  `nvim-<project>` with two windows — `opencode` and a plain `term`. The session
+  is created with `new-session -A` (the `term` window is added only if missing),
+  so it persists across toggles/nvim restarts and is shareable from a normal
+  terminal; switch windows (`C-Space n`) for the shell.
   A `FileType snacks_terminal` autocmd overrides `C-h/j/k/l` to always return to
   nvim (overriding vim-tmux-navigator) — deliberate, see `docs/adr/0001`. The
-  opencode panel resolves `opencode` from PATH, so it relies on the tmux server
+  opencode window resolves `opencode` from PATH, so it relies on the tmux server
   env having mise shims.
 - nvim Jupyter support is `jupynvim` (spec: `nvim/.config/nvim/lua/plugins/jupynvim.lua`).
   Its lazy `build` hook downloads the prebuilt Rust `jupynvim-core` into

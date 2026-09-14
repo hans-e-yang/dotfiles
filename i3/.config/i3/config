@@ -67,6 +67,9 @@ bindsym $mod+Return exec --no-startup-id sh -c 'command -v ghostty >/dev/null 2>
 # kill focused window
 bindsym $mod+q kill
 
+# lock the screen (xss-lock runs i3lock; see the exec above)
+bindsym $mod+Escape exec --no-startup-id loginctl lock-session
+
 # start dmenu (a program launcher)
 # bindsym $mod+d exec --no-startup-id dmenu_run
 # A more modern dmenu replacement is rofi:

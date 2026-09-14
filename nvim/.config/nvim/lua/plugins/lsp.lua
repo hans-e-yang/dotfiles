@@ -11,6 +11,13 @@ return {
     "neovim/nvim-lspconfig",
     lazy = false,
     config = function()
+      vim.diagnostic.config({
+        virtual_text = true,
+        jump = {
+          on_jump = function(_, bufnr) vim.diagnostic.open_float({ bufnr = bufnr }) end,
+        },
+      })
+
       vim.lsp.config("clangd", {
         cmd = { "clangd", "--header-insertion=never" },
       })

@@ -8,10 +8,17 @@ DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 declare -A LABEL=(
   [power]="Power menu"
   [shortcuts]="Shortcuts menu"
+  [terminal]="Terminal"
 )
 declare -A BIND=(
   [power]="<Super>x"
   [shortcuts]="<Super>c"
+  [terminal]="<Super>t"
+)
+declare -A COMMAND=(
+  [power]="$DIR/power-menu"
+  [shortcuts]="$DIR/shortcuts-menu"
+  [terminal]="ghostty"
 )
 
 if ! gsettings writable "$SCHEMA" custom-keybindings >/dev/null 2>&1; then
@@ -29,15 +36,15 @@ for path in "${parts[@]}"; do
   [ -n "$path" ] && [ "$path" != "@as" ] || continue
   name="$(unquote "$(gsettings get "$SCHEMA.custom-keybinding:$path" name 2>/dev/null || true)")"
   case "$name" in
-    "Power menu"|"Shortcuts menu") ;;
+    "Power menu"|"Shortcuts menu"|"Terminal") ;;
     *) keep+=("$path") ;;
   esac
 done
 
-for key in power shortcuts; do
+for key in power shortcuts terminal; do
   path="$BASE/custom-o-tiling-$key/"
   gsettings set "$SCHEMA.custom-keybinding:$path" name "${LABEL[$key]}"
-  gsettings set "$SCHEMA.custom-keybinding:$path" command "$DIR/$key-menu"
+  gsettings set "$SCHEMA.custom-keybinding:$path" command "${COMMAND[$key]}"
   gsettings set "$SCHEMA.custom-keybinding:$path" binding "${BIND[$key]}"
   keep+=("$path")
 done
@@ -64,4 +71,4 @@ for i in $(seq 1 9); do
   gsettings set org.gnome.shell.extensions.dash-to-dock "app-hotkey-$i" "[]" 2>/dev/null || true
 done
 
-echo "registered: ${LABEL[power]} = ${BIND[power]}, ${LABEL[shortcuts]} = ${BIND[shortcuts]}, workspaces = Super+1..0 / Super+Shift+1..0"
+echo "registered: ${LABEL[power]} = ${BIND[power]}, ${LABEL[shortcuts]} = ${BIND[shortcuts]}, ${LABEL[terminal]} = ${BIND[terminal]}, workspaces = Super+1..0 / Super+Shift+1..0"
