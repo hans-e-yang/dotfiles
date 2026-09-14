@@ -24,7 +24,8 @@ local function session_name()
 end
 
 -- `new-session -A -d` creates the session when missing and is a no-op when it
--- already exists. The `term` window is added only if it isn't there yet.
+-- already exists. The `term` window is added only if it isn't there yet. The
+-- `opencode` window is selected last so toggling always focuses it, not `term`.
 local function ensure_session()
   local name = session_name()
   local cwd = project_root()
@@ -33,6 +34,7 @@ local function ensure_session()
   if vim.v.shell_error ~= 0 or not vim.tbl_contains(wins, "term") then
     vim.fn.system({ "tmux", "new-window", "-t", name, "-c", cwd, "-n", "term" })
   end
+  vim.fn.system({ "tmux", "select-window", "-t", name .. ":opencode" })
   return name
 end
 
