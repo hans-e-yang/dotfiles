@@ -24,6 +24,9 @@ vim.opt.mouse = "a"
 vim.o.number = true
 vim.o.relativenumber = true
 
+-- Keep the sign column stable so diagnostics don't shift the text when they appear
+vim.o.signcolumn = "yes"
+
 vim.opt.swapfile = false
 vim.opt.backup = false
 vim.opt.undodir = os.getenv("HOME") .. "/.vim/undodir"

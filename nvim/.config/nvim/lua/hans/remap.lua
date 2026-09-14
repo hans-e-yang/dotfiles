@@ -54,7 +54,9 @@ map.set("i", "<C-L>", "<CR><Esc>kA<Cr>")
 
 -- Somehow, K is mapped to man, which I rarely use
 -- This is to override that default behaviour
-map.set("n", "K", ":lua vim.lsp.buf.hover()<CR>")
+map.set("n", "K", function()
+  vim.lsp.buf.hover({ border = "rounded", max_width = 100, max_height = 25 })
+end)
 
 -- Tabout Behaviour
 local taboutChars = {
