@@ -71,7 +71,7 @@ install_starship() {
 # land in ~/.local/share/fonts so no sudo is needed.
 install_nerd_font() {
   local font=DejaVuSansMono version=3.3.0 dir="$HOME/.local/share/fonts/DejaVuSansMono"
-  if fc-list 2>/dev/null | grep -qi "DejaVuSansMono Nerd Font"; then
+  if fc-list 2>/dev/null | grep -i "DejaVuSansM Nerd Font" >/dev/null; then
     echo "  $font Nerd Font: already installed (skipping)"
     return 0
   fi
