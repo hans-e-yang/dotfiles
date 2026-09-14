@@ -38,3 +38,6 @@ if status is-interactive
     # Per-machine / per-distro drop-ins: fish auto-sources
     # ~/.config/fish/conf.d/*.fish, so no explicit loop is needed.
 end
+
+# opencode
+fish_add_path /home/hans/.opencode/bin

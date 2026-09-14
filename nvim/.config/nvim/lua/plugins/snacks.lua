@@ -81,7 +81,7 @@ return {
   "folke/snacks.nvim",
   lazy = false,
   priority = 1000,
-  opts = { terminal = {} },
+  opts = { terminal = { win = { wo = { winbar = ""}}} },
   config = function(_, opts)
     require("snacks").setup(opts)
 
