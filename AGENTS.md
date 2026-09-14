@@ -101,6 +101,16 @@ removed on the 0.12 bump — edit only the copy under `nvim/`.
 - TPM init line (`run '~/.config/tmux/plugins/tpm/tpm'`) must stay the last line of
   `tmux/tmux.conf`.
 - setup.sh needs sudo for package installs; apps.sh installs are user-scoped.
+- nvim VSCode-style panels are `snacks.terminal`, installed terminal-only
+  (spec: `nvim/.config/nvim/lua/plugins/snacks.lua`). `<leader>tb` toggles the
+  bottom *term* panel, `<leader>to` the right *opencode* panel, `<leader>ta`
+  arranges both (non-destructive). Each panel runs a per-project tmux session
+  `nvim-<project>-{term,opencode}` created with `new-session -A`, so sessions
+  persist across toggles/nvim restarts and are shareable from a normal terminal.
+  A `FileType snacks_terminal` autocmd overrides `C-h/j/k/l` to always return to
+  nvim (overriding vim-tmux-navigator) — deliberate, see `docs/adr/0001`. The
+  opencode panel resolves `opencode` from PATH, so it relies on the tmux server
+  env having mise shims.
 - nvim Jupyter support is `jupynvim` (spec: `nvim/.config/nvim/lua/plugins/jupynvim.lua`).
   Its lazy `build` hook downloads the prebuilt Rust `jupynvim-core` into
   `~/.local/share/nvim/lazy/jupynvim/core/target/release/` (outside the stowed tree)

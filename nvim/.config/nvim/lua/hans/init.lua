@@ -18,6 +18,9 @@ vim.opt.foldclose = ""
 -- no wrapping
 vim.opt.wrap = false
 
+-- Mouse support: click to focus/scroll and drag borders/statusline to resize splits
+vim.opt.mouse = "a"
+
 vim.o.number = true
 vim.o.relativenumber = true
 
