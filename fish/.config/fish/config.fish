@@ -11,8 +11,14 @@ if test -d ~/.local/share/nvim-linux-x86_64/bin
     fish_add_path -g ~/.local/share/nvim-linux-x86_64/bin
 end
 
-if command -q nvim
-    set -gx EDITOR nvim VISUAL nvim SUDO_EDITOR nvim
+# Neovim is installed under $HOME, so export its absolute path rather than the
+# bare `nvim` command: root's PATH (e.g. `sudo -i`, `sudo nvim`) does not
+# include this user's ~/.local/share, and a bare name would fail to resolve.
+set -l nvim_bin /home/hans/.local/share/nvim-linux-x86_64/bin/nvim
+if test -x $nvim_bin
+    set -gx EDITOR $nvim_bin
+    set -gx VISUAL $nvim_bin
+    set -gx SUDO_EDITOR $nvim_bin
 end
 
 # ----------------------------------------------------------- interactive-only
